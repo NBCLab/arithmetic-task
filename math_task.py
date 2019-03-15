@@ -13,7 +13,6 @@ If you publish work using this script please cite the PsychoPy publications:
 from __future__ import absolute_import, division
 import os  # handy system and path functions
 import sys  # to get file system encoding
-import ast
 from psychopy import gui, visual, core, data, event, logging
 from psychopy.constants import (NOT_STARTED, STARTED, STOPPED, FINISHED)
 import numpy as np  # whole numpy lib is available, prepend 'np.'
@@ -24,8 +23,11 @@ os.chdir(script_dir)
 
 # Store info about the experiment session
 exp_name = u'math_task'  # from the Builder filename that created this script
-exp_info = {u'operations': u"'+-*/'", u'participant': u'', u'scanner': u"''"}
-dlg = gui.DlgFromDict(dictionary=exp_info, title=exp_name)
+exp_info = {u'operations': ['+', '-', '/', '*', '**', ['+', '-', '/', '*', '**']],
+            u'participant': u'', u'scanner': ['scanner', 'behav_only'],
+            u'run_count': 3}
+dlg = gui.DlgFromDict(dictionary=exp_info, title=exp_name,
+                      order=['participant', 'operations', 'scanner'])
 if not dlg.OK:
     core.quit()  # user pressed cancel
 exp_info['date'] = data.getDateStr()  # add a simple timestamp
@@ -64,16 +66,20 @@ else:
 
 # Initialize components for Routine "instructions"
 instruction_clock = core.Clock()
-if exp_info['scanner']:
+if exp_info['scanner'] == 'scanner':
     INSTRUCTION_TEXT = \
     ' You will be shown a series of formulas, \
     \nyou must determine if the result is less than, equal to,  or greater than 5 \
-    \n      1 - Less Than  2 - Equal to  3 - Greater Than'
+    \n      1 - Less Than  \
+    \n      2 - Equal to   \
+    \n      3 - Greater Than'
 else:
     INTRUSCTION_TEXT = \
     ' You will be shown a series of formulas, \
     \nyou must determine if the result is less than, equal to,  or greater than 5 \
-    \n      1 - Less Than  2 - Equal to  3 - Greater Than'
+    \n      1 - Less Than  \
+    \n      2 - Equal to   \
+    \n      3 - Greater Than'
 MATH_TEXT = ''
 
 INSTRUCTION_TEXT_BOX = visual.TextStim(win=main_window, name='INSTRUCTION_TEXT_BOX',
@@ -124,281 +130,314 @@ CONTINUE_ROUTINE_FLAG = True
 
 INSTRUCTION_END_RESP = event.BuilderKeyResponse()
 # keep track of which components have finished
-instruction_components = [INSTRUCTION_TEXT_BOX, INSTRUCTION_END_RESP]
+instruction_components = [INSTRUCTION_TEXT_BOX, INSTRUCTION_END_RESP, MATH_FIX]
 for thisComponent in instruction_components:
     if hasattr(thisComponent, 'status'):
         thisComponent.status = NOT_STARTED
 
+for run in range(exp_info['run_count']):
 # -------Start Routine "instructions"-------
-while CONTINUE_ROUTINE_FLAG:
-    # get current time
-    routine_time = instruction_clock.getTime()
-    frame_n = frame_n + 1  # number of completed frames (so 0 is the first frame)
-    # update/draw components on each frame
-
-    # *INSTRUCTION_TEXT_BOX* updates
-    if routine_time >= 0.0 and INSTRUCTION_TEXT_BOX.status == NOT_STARTED:
-        # keep track of start time/frame for later
-        INSTRUCTION_TEXT_BOX.tStart = routine_time
-        INSTRUCTION_TEXT_BOX.frameNStart = frame_n  # exact frame index
-        INSTRUCTION_TEXT_BOX.setAutoDraw(True)
-
-    # *INSTRUCTION_END_RESP* updates
-    if routine_time >= 0.0 and INSTRUCTION_END_RESP.status == NOT_STARTED:
-        # keep track of start time/frame for later
-        INSTRUCTION_END_RESP.tStart = routine_time
-        INSTRUCTION_END_RESP.frameNStart = frame_n  # exact frame index
-        INSTRUCTION_END_RESP.status = STARTED
-        # keyboard checking is just starting
-        main_window.callOnFlip(INSTRUCTION_END_RESP.clock.reset)
-        event.clearEvents(eventType='keyboard')
-    if INSTRUCTION_END_RESP.status == STARTED:
-        current_key_list = event.getKeys(keyList=['space'])
-
-        # check for quit:
-        if "escape" in current_key_list:
-            END_EXP_FLAG = True
-        if current_key_list:  # at least one key was pressed
-            INSTRUCTION_END_RESP.keys = current_key_list[-1]  # just the last key pressed
-            INSTRUCTION_END_RESP.rt = INSTRUCTION_END_RESP.clock.getTime()
-            # a response ends the routine
-            CONTINUE_ROUTINE_FLAG = False
-
-    # check if all components have finished
-    if not CONTINUE_ROUTINE_FLAG:  # a component has requested a forced-end of Routine
-        break
-    CONTINUE_ROUTINE_FLAG = False  # will revert to True if at least one component still running
-    for thisComponent in instruction_components:
-        if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-            CONTINUE_ROUTINE_FLAG = True
-            break  # at least one component has not yet finished
-
-    # check for quit (the Esc key)
-    if END_EXP_FLAG or event.getKeys(keyList=["escape"]):
-        core.quit()
-
-    # refresh the screen
-    if CONTINUE_ROUTINE_FLAG:  # don't flip if this routine is over or we'll get a blank screen
-        main_window.flip()
-
-# -------Ending Routine "instructions"-------
-for thisComponent in instruction_components:
-    if hasattr(thisComponent, "setAutoDraw"):
-        thisComponent.setAutoDraw(False)
-
-# check responses
-if INSTRUCTION_END_RESP.keys in ['', [], None]:  # No response was made
-    INSTRUCTION_END_RESP.keys = None
-this_experiment.addData('INSTRUCTION_END_RESP.keys', INSTRUCTION_END_RESP.keys)
-if INSTRUCTION_END_RESP.keys != None:  # we had a response
-    this_experiment.addData('INSTRUCTION_END_RESP.rt', INSTRUCTION_END_RESP.rt)
-this_experiment.nextEntry()
-# the Routine "instructions" was not non-slip safe, so reset the non-slip timer
-routine_timer.reset()
-
-# set up handler to look after randomisation of conditions etc
-trials = data.TrialHandler(nReps=99, method='random',
-                           extraInfo=exp_info, originPath=-1,
-                           trialList=[None],
-                           seed=None, name='trials')
-this_experiment.addLoop(trials)  # add the loop to the experiment
-current_trial = trials.trialList[0]  # so we can initialise stimuli with some values
-# abbreviate parameter names if possible (e.g. rgb = current_trial.rgb)
-for current_trial in trials:
-    currentLoop = trials
-    # ------Prepare to start Routine "trial"-------
-    trial_time = 0
-    trial_clock.reset()  # clock
-    frame_n = -1
-    CONTINUE_ROUTINE_FLAG = True
-    routine_timer.add(5.500000)
-    # update component parameters for each repeat
-    MATH_TEXT_BOX.setText(MATH_TEXT)
-    MATH_TEXT_RESPONSE = event.BuilderKeyResponse()
-    num_one = np.random.randint(0, 9)
-    num_two = np.random.randint(0, 9)
-    operator = exp_info['operations'][np.random.randint(0, len(exp_info['operations']))]
-
-    MATH_TEXT = '{0} {1} {2}'.format(num_one, operator, num_two)
-    MATH_VAL = ast.literal_eval(MATH_TEXT)
-    if MATH_VAL < 5:
-        MATH_CORR = '1'
-    elif MATH_VAL == 5:
-        MATH_CORR = '2'
-    else:
-        MATH_CORR = '3'
-
-
-    # keep track of which components have finished
-    trialComponents = [MATH_TEXT_BOX, MATH_TEXT_RESPONSE, MATH_FIX]
-    for thisComponent in trialComponents:
-        if hasattr(thisComponent, 'status'):
-            thisComponent.status = NOT_STARTED
-
-    # -------Start Routine "trial"-------
-    while CONTINUE_ROUTINE_FLAG and routine_timer.getTime() > 0:
+    while CONTINUE_ROUTINE_FLAG:
         # get current time
-        trial_time = trial_clock.getTime()
+        routine_time = instruction_clock.getTime()
         frame_n = frame_n + 1  # number of completed frames (so 0 is the first frame)
         # update/draw components on each frame
 
-        # *MATH_TEXT_BOX* updates
-        if trial_time >= 0.0 and MATH_TEXT_BOX.status == NOT_STARTED:
+        # *INSTRUCTION_TEXT_BOX* updates
+        if routine_time >= 0.0 and INSTRUCTION_TEXT_BOX.status == NOT_STARTED:
             # keep track of start time/frame for later
-            MATH_TEXT_BOX.tStart = trial_time
-            MATH_TEXT_BOX.frameNStart = frame_n  # exact frame index
-            MATH_TEXT_BOX.setAutoDraw(True)
-        frameRemains = 0.0 + 5 - main_window.monitorFramePeriod * 0.75
-        if MATH_TEXT_BOX.status == STARTED and trial_time >= frameRemains:
-            MATH_TEXT_BOX.setAutoDraw(False)
+            INSTRUCTION_TEXT_BOX.tStart = routine_time
+            INSTRUCTION_TEXT_BOX.frameNStart = frame_n  # exact frame index
+            INSTRUCTION_TEXT_BOX.setAutoDraw(True)
 
-        # *MATH_TEXT_RESPONSE* updates
-        if trial_time >= 0.0 and MATH_TEXT_RESPONSE.status == NOT_STARTED:
+        # *INSTRUCTION_END_RESP* updates
+        if routine_time >= 0.0 and INSTRUCTION_END_RESP.status == NOT_STARTED:
             # keep track of start time/frame for later
-            MATH_TEXT_RESPONSE.tStart = trial_time
-            MATH_TEXT_RESPONSE.frameNStart = frame_n  # exact frame index
-            MATH_TEXT_RESPONSE.status = STARTED
+            INSTRUCTION_END_RESP.tStart = routine_time
+            INSTRUCTION_END_RESP.frameNStart = frame_n  # exact frame index
+            INSTRUCTION_END_RESP.status = STARTED
             # keyboard checking is just starting
-            main_window.callOnFlip(MATH_TEXT_RESPONSE.clock.reset)
+            main_window.callOnFlip(INSTRUCTION_END_RESP.clock.reset)
             event.clearEvents(eventType='keyboard')
-        frameRemains = 0.0 + 5- main_window.monitorFramePeriod * 0.75
-        if MATH_TEXT_RESPONSE.status == STARTED and trial_time >= frameRemains:
-            MATH_TEXT_RESPONSE.status = STOPPED
-        if MATH_TEXT_RESPONSE.status == STARTED:
-            current_key_list = event.getKeys(keyList=['1', '2', '3'])
+        if INSTRUCTION_END_RESP.status == STARTED:
+            current_key_list = event.getKeys(keyList=['space'])
 
             # check for quit:
             if "escape" in current_key_list:
                 END_EXP_FLAG = True
             if current_key_list:  # at least one key was pressed
-                MATH_TEXT_RESPONSE.keys = current_key_list[-1]  # just the last key pressed
-                MATH_TEXT_RESPONSE.rt = MATH_TEXT_RESPONSE.clock.getTime()
-                # was this 'correct'?
-                if (MATH_TEXT_RESPONSE.keys == str(MATH_CORR)) \
-                or (MATH_TEXT_RESPONSE.keys == MATH_CORR):
-                    MATH_TEXT_RESPONSE.corr = 1
-                else:
-                    MATH_TEXT_RESPONSE.corr = 0
+                INSTRUCTION_END_RESP.keys = current_key_list[-1]  # just the last key pressed
+                INSTRUCTION_END_RESP.rt = INSTRUCTION_END_RESP.clock.getTime()
                 # a response ends the routine
                 CONTINUE_ROUTINE_FLAG = False
 
+        # check if all components have finished
+        if not CONTINUE_ROUTINE_FLAG:  # a component has requested a forced-end of Routine
+            break
+        CONTINUE_ROUTINE_FLAG = False  # will revert to True if at least one component still running
+        for thisComponent in instruction_components:
+            if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
+                CONTINUE_ROUTINE_FLAG = True
+                break  # at least one component has not yet finished
 
-        # *MATH_FIX* updates
-        if trial_time >= 5 and MATH_FIX.status == NOT_STARTED:
-            # keep track of start time/frame for later
-            MATH_FIX.tStart = trial_time
-            MATH_FIX.frameNStart = frame_n  # exact frame index
+        # check for quit (the Esc key)
+        if END_EXP_FLAG or event.getKeys(keyList=["escape"]):
+            core.quit()
+
+        # refresh the screen
+        if CONTINUE_ROUTINE_FLAG:  # don't flip if this routine is over or we'll get a blank screen
+            main_window.flip()
+
+    # -------Ending Routine "instructions"-------
+    for thisComponent in instruction_components:
+        if hasattr(thisComponent, "setAutoDraw"):
+            thisComponent.setAutoDraw(False)
+
+    # check responses
+    if INSTRUCTION_END_RESP.keys in ['', [], None]:  # No response was made
+        INSTRUCTION_END_RESP.keys = None
+    this_experiment.addData('INSTRUCTION_END_RESP.keys', INSTRUCTION_END_RESP.keys)
+    if INSTRUCTION_END_RESP.keys != None:  # we had a response
+        this_experiment.addData('INSTRUCTION_END_RESP.rt', INSTRUCTION_END_RESP.rt)
+    this_experiment.nextEntry()
+    # the Routine "instructions" was not non-slip safe, so reset the non-slip timer
+    routine_timer.reset()
+
+    CONTINUE_ROUTINE_FLAG = True
+    begin_fix_components = [MATH_FIX]
+    BEGIN_FIX_CLOCK = core.Clock()
+    t = 0
+    frameN = -1
+    while CONTINUE_ROUTINE_FLAG:
+        t = BEGIN_FIX_CLOCK.getTime()
+        frameN += 1
+        if t >= 0 and MATH_FIX.status == NOT_STARTED:
+            MATH_FIX.tStart = t
+            MATH_FIX.frameNStart = frameN
             MATH_FIX.setAutoDraw(True)
-        frameRemains = 5 + .5- main_window.monitorFramePeriod * 0.75
-        if MATH_FIX.status == STARTED and trial_time >= frameRemains:
+        if t >= (6.00 - main_window.monitorFramePeriod * 0.75) \
+        and MATH_FIX.status == STARTED:
             MATH_FIX.setAutoDraw(False)
 
-        # check if all components have finished
-        if not CONTINUE_ROUTINE_FLAG:  # a component has requested a forced-end of Routine
+        if not CONTINUE_ROUTINE_FLAG:
             break
-        CONTINUE_ROUTINE_FLAG = False  # will revert to True if at least one component still running
-        for thisComponent in trialComponents:
-            if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-                CONTINUE_ROUTINE_FLAG = True
-                break  # at least one component has not yet finished
-
-        # check for quit (the Esc key)
-        if END_EXP_FLAG or event.getKeys(keyList=["escape"]):
+        if MATH_FIX.status == FINISHED:
+            CONTINUE_ROUTINE_FLAG = False
+        if END_EXP_FLAG or event.getKeys(keyList=['escape']):
             core.quit()
-
-        # refresh the screen
-        if CONTINUE_ROUTINE_FLAG:  # don't flip if this routine is over or we'll get a blank screen
+        if CONTINUE_ROUTINE_FLAG:
             main_window.flip()
-
-    # -------Ending Routine "trial"-------
-    for thisComponent in trialComponents:
-        if hasattr(thisComponent, "setAutoDraw"):
-            thisComponent.setAutoDraw(False)
-    # check responses
-    if MATH_TEXT_RESPONSE.keys in ['', [], None]:  # No response was made
-        MATH_TEXT_RESPONSE.keys = None
-        # was no response the correct answer?!
-        if str(MATH_CORR).lower() == 'none':
-            MATH_TEXT_RESPONSE.corr = 1  # correct non-response
+    for this_component in begin_fix_components:
+        if hasattr(this_component, 'setAutoDraw'):
+            this_component.setAutoDraw(False)
+    # set up handler to look after randomisation of conditions etc
+    trials = data.TrialHandler(nReps=99, method='random',
+                               extraInfo=exp_info, originPath=-1,
+                               trialList=[None],
+                               seed=None, name='trials')
+    this_experiment.addLoop(trials)  # add the loop to the experiment
+    current_trial = trials.trialList[0]  # so we can initialise stimuli with some values
+    # abbreviate parameter names if possible (e.g. rgb = current_trial.rgb)
+    MATH_TEXT = ''
+    for current_trial in trials:
+        currentLoop = trials
+        # ------Prepare to start Routine "trial"-------
+        trial_time = 0
+        trial_clock.reset()  # clock
+        frame_n = -1
+        CONTINUE_ROUTINE_FLAG = True
+        routine_timer.add(5.500000)
+        # update component parameters for each repeat
+        MATH_TEXT_RESPONSE = event.BuilderKeyResponse()
+        num_one = np.random.randint(0, 9)
+        num_two = np.random.randint(0, 9)
+        operator = exp_info['operations'][np.random.randint(0, len(exp_info['operations']))]
+        MATH_TEXT = '{0} {1} {2}'.format(num_one, operator, num_two)
+        MATH_TEXT_BOX.setText(MATH_TEXT)
+        print(MATH_TEXT_BOX.text)
+        MATH_VAL = eval(MATH_TEXT)
+        if MATH_VAL < 5:
+            MATH_CORR = '1'
+        elif MATH_VAL == 5:
+            MATH_CORR = '2'
         else:
-            MATH_TEXT_RESPONSE.corr = 0  # failed to respond (incorrectly)
-    # store data for trials (TrialHandler)
-    trials.addData('MATH_TEXT_RESPONSE.keys', MATH_TEXT_RESPONSE.keys)
-    trials.addData('MATH_TEXT_RESPONSE.corr', MATH_TEXT_RESPONSE.corr)
-    if MATH_TEXT_RESPONSE.keys != None:  # we had a response
-        trials.addData('MATH_TEXT_RESPONSE.rt', MATH_TEXT_RESPONSE.rt)
+            MATH_CORR = '3'
+        print(MATH_CORR)
+
+        # keep track of which components have finished
+        trial_components = [MATH_TEXT_BOX, MATH_TEXT_RESPONSE, MATH_FIX]
+        for this_component in trial_components:
+            if hasattr(this_component, 'status'):
+                thisComponent.status = NOT_STARTED
+
+        # -------Start Routine "trial"-------
+        while CONTINUE_ROUTINE_FLAG and routine_timer.getTime() > 0:
+            # get current time
+            trial_time = trial_clock.getTime()
+            frame_n = frame_n + 1  # number of completed frames (so 0 is the first frame)
+            # update/draw components on each frame
+
+            # *MATH_TEXT_BOX* updates
+            if trial_time >= 0.0 and MATH_TEXT_BOX.status == NOT_STARTED:
+                # keep track of start time/frame for later
+                MATH_TEXT_BOX.tStart = trial_time
+                MATH_TEXT_BOX.frameNStart = frame_n  # exact frame index
+                MATH_TEXT_BOX.setAutoDraw(True)
+            frameRemains = 0.0 + 5 - main_window.monitorFramePeriod * 0.75
+            if MATH_TEXT_BOX.status == STARTED and trial_time >= frameRemains:
+                MATH_TEXT_BOX.setAutoDraw(False)
+
+            # *MATH_TEXT_RESPONSE* updates
+            if trial_time >= 0.0 and MATH_TEXT_RESPONSE.status == NOT_STARTED:
+                # keep track of start time/frame for later
+                MATH_TEXT_RESPONSE.tStart = trial_time
+                MATH_TEXT_RESPONSE.frameNStart = frame_n  # exact frame index
+                MATH_TEXT_RESPONSE.status = STARTED
+                # keyboard checking is just starting
+                main_window.callOnFlip(MATH_TEXT_RESPONSE.clock.reset)
+                event.clearEvents(eventType='keyboard')
+            frameRemains = 0.0 + 5 - main_window.monitorFramePeriod * 0.75
+            if MATH_TEXT_RESPONSE.status == STARTED and trial_time >= frameRemains:
+                MATH_TEXT_RESPONSE.status = STOPPED
+            if MATH_TEXT_RESPONSE.status == STARTED:
+                current_key_list = event.getKeys(keyList=['1', '2', '3'])
+
+                # check for quit:
+                if "escape" in current_key_list:
+                    END_EXP_FLAG = True
+                if current_key_list:  # at least one key was pressed
+                    MATH_TEXT_RESPONSE.keys = current_key_list[-1]  # just the last key pressed
+                    MATH_TEXT_RESPONSE.rt = MATH_TEXT_RESPONSE.clock.getTime()
+                    # was this 'correct'?
+                    if (MATH_TEXT_RESPONSE.keys == str(MATH_CORR)) \
+                    or (MATH_TEXT_RESPONSE.keys == MATH_CORR):
+                        MATH_TEXT_RESPONSE.corr = 1
+                    else:
+                        MATH_TEXT_RESPONSE.corr = 0
+                    # a response ends the routine
+                    CONTINUE_ROUTINE_FLAG = False
 
 
-    # ------Prepare to start Routine "feedback"-------
-    routine_time = 0
-    feedback_clock.reset()  # clock
-    frame_n = -1
-    CONTINUE_ROUTINE_FLAG = True
-    routine_timer.add(6.000000)
-    # update component parameters for each repeat
-    FEEDBACK_TEXT_BOX.setText(FEEDBACK_TEXT)
-    print(MATH_TEXT_RESPONSE.corr)
-    if MATH_TEXT_RESPONSE.corr:
-        FEEDBACK_TEXT = 'Correct'
-    else:
-        FEEDBACK_TEXT = 'Incorrect'
-    # keep track of which components have finished
-    feedbackComponents = [FEEDBACK_TEXT_BOX, ISI]
-    for thisComponent in feedbackComponents:
-        if hasattr(thisComponent, 'status'):
-            thisComponent.status = NOT_STARTED
+            # *MATH_FIX* updates
+            if trial_time >= 5 and MATH_FIX.status == NOT_STARTED:
+                # keep track of start time/frame for later
+                MATH_FIX.tStart = trial_time
+                MATH_FIX.frameNStart = frame_n  # exact frame index
+                MATH_FIX.setAutoDraw(True)
+            frameRemains = 5 + .5- main_window.monitorFramePeriod * 0.75
+            if MATH_FIX.status == STARTED and trial_time >= frameRemains:
+                MATH_FIX.setAutoDraw(False)
 
-    # -------Start Routine "feedback"-------
-    while CONTINUE_ROUTINE_FLAG and routine_timer.getTime() > 0:
-        # get current time
-        routine_time = feedback_clock.getTime()
-        frame_n = frame_n + 1  # number of completed frames (so 0 is the first frame)
-        # update/draw components on each frame
+            # check if all components have finished
+            if not CONTINUE_ROUTINE_FLAG:  # a component has requested a forced-end of Routine
+                break
+            CONTINUE_ROUTINE_FLAG = False
+            for this_component in trial_components:
+                if hasattr(this_component, "status") and this_component.status != FINISHED:
+                    CONTINUE_ROUTINE_FLAG = True
+                    break  # at least one component has not yet finished
 
-        # *FEEDBACK_TEXT_BOX* updates
-        if routine_time >= 0.0 and FEEDBACK_TEXT_BOX.status == NOT_STARTED:
-            # keep track of start time/frame for later
-            FEEDBACK_TEXT_BOX.tStart = routine_time
-            FEEDBACK_TEXT_BOX.frameNStart = frame_n  # exact frame index
-            FEEDBACK_TEXT_BOX.setAutoDraw(True)
-        frameRemains = 0.0 + 1.0- main_window.monitorFramePeriod * 0.75
-        if FEEDBACK_TEXT_BOX.status == STARTED and routine_time >= frameRemains:
-            FEEDBACK_TEXT_BOX.setAutoDraw(False)
+            # check for quit (the Esc key)
+            if END_EXP_FLAG or event.getKeys(keyList=["escape"]):
+                core.quit()
 
-        # *ISI* period
-        if routine_time >= 1 and ISI.status == NOT_STARTED:
-            # keep track of start time/frame for later
-            ISI.tStart = routine_time
-            ISI.frameNStart = frame_n  # exact frame index
-            ISI.start(5)
-        elif ISI.status == STARTED:  # one frame should pass before updating params and completing
-            ISI.complete()  # finish the static period
+            # refresh the screen
+            if CONTINUE_ROUTINE_FLAG:
+                main_window.flip()
 
-        # check if all components have finished
-        if not CONTINUE_ROUTINE_FLAG:  # a component has requested a forced-end of Routine
-            break
-        CONTINUE_ROUTINE_FLAG = False  # will revert to True if at least one component still running
+        # -------Ending Routine "trial"-------
+        for this_component in trial_components:
+            if hasattr(this_component, "setAutoDraw"):
+                this_component.setAutoDraw(False)
+        # check responses
+        if MATH_TEXT_RESPONSE.keys in ['', [], None]:  # No response was made
+            MATH_TEXT_RESPONSE.keys = None
+            # was no response the correct answer?!
+            if str(MATH_CORR).lower() == 'none':
+                MATH_TEXT_RESPONSE.corr = 1  # correct non-response
+            else:
+                MATH_TEXT_RESPONSE.corr = 0  # failed to respond (incorrectly)
+        # store data for trials (TrialHandler)
+        trials.addData('MATH_TEXT_RESPONSE.keys', MATH_TEXT_RESPONSE.keys)
+        trials.addData('MATH_TEXT_RESPONSE.corr', MATH_TEXT_RESPONSE.corr)
+        if MATH_TEXT_RESPONSE.keys != None:  # we had a response
+            trials.addData('MATH_TEXT_RESPONSE.rt', MATH_TEXT_RESPONSE.rt)
+
+
+        # ------Prepare to start Routine "feedback"-------
+        routine_time = 0
+        feedback_clock.reset()  # clock
+        frame_n = -1
+        CONTINUE_ROUTINE_FLAG = True
+        routine_timer.add(6.000000)
+        # update component parameters for each repeat
+        FEEDBACK_TEXT_BOX.setText(FEEDBACK_TEXT)
+        if MATH_TEXT_RESPONSE.corr == 0:
+            FEEDBACK_TEXT = 'Correct'
+        else:
+            FEEDBACK_TEXT = 'Incorrect'
+        # keep track of which components have finished
+        feedbackComponents = [FEEDBACK_TEXT_BOX, ISI, MATH_FIX]
         for thisComponent in feedbackComponents:
-            if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-                CONTINUE_ROUTINE_FLAG = True
-                break  # at least one component has not yet finished
+            if hasattr(thisComponent, 'status'):
+                thisComponent.status = NOT_STARTED
 
-        # check for quit (the Esc key)
-        if END_EXP_FLAG or event.getKeys(keyList=["escape"]):
-            core.quit()
+        # -------Start Routine "feedback"-------
+        while CONTINUE_ROUTINE_FLAG and routine_timer.getTime() > 0:
+            # get current time
+            routine_time = feedback_clock.getTime()
+            frame_n = frame_n + 1  # number of completed frames (so 0 is the first frame)
+            # update/draw components on each frame
 
-        # refresh the screen
-        if CONTINUE_ROUTINE_FLAG:  # don't flip if this routine is over or we'll get a blank screen
-            main_window.flip()
+            # *FEEDBACK_TEXT_BOX* updates
+            if routine_time >= 0.0 and FEEDBACK_TEXT_BOX.status == NOT_STARTED:
+                # keep track of start time/frame for later
+                FEEDBACK_TEXT_BOX.tStart = routine_time
+                FEEDBACK_TEXT_BOX.frameNStart = frame_n  # exact frame index
+                FEEDBACK_TEXT_BOX.setAutoDraw(True)
+            frameRemains = 0.0 + 1.0- main_window.monitorFramePeriod * 0.75
+            if FEEDBACK_TEXT_BOX.status == STARTED and routine_time >= frameRemains:
+                FEEDBACK_TEXT_BOX.setAutoDraw(False)
 
-    # -------Ending Routine "feedback"-------
-    for thisComponent in feedbackComponents:
-        if hasattr(thisComponent, "setAutoDraw"):
-            thisComponent.setAutoDraw(False)
+            # *ISI* period
+            if routine_time >= 1 and ISI.status == NOT_STARTED:
+                # keep track of start time/frame for later
+                ISI.tStart = routine_time
+                ISI.frameNStart = frame_n  # exact frame index
+                ISI.start(5)
+            if routine_time >= 1 and MATH_FIX.status == NOT_STARTED:
+                MATH_FIX.tStart = routine_time
+                MATH_FIX.frameNStart = frame_n
+                MATH_FIX.setAutoDraw(True)
+            if routine_time >= 1 + 5 * main_window.monitorFramePeriod * 0.75 \
+            and MATH_FIX.status == STARTED:
+                MATH_FIX.setAutoDraw(False)
+                ISI.complete()
+            # check if all components have finished
+            if not CONTINUE_ROUTINE_FLAG:  # a component has requested a forced-end of Routine
+                break
+            CONTINUE_ROUTINE_FLAG = False
+            for thisComponent in feedbackComponents:
+                if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
+                    CONTINUE_ROUTINE_FLAG = True
+                    break  # at least one component has not yet finished
 
-    this_experiment.nextEntry()
+            # check for quit (the Esc key)
+            if END_EXP_FLAG or event.getKeys(keyList=["escape"]):
+                core.quit()
 
-# completed 99 repeats of 'trials'
+            # refresh the screen
+            if CONTINUE_ROUTINE_FLAG:
+                main_window.flip()
+
+        # -------Ending Routine "feedback"-------
+        for thisComponent in feedbackComponents:
+            if hasattr(thisComponent, "setAutoDraw"):
+                thisComponent.setAutoDraw(False)
+
+        this_experiment.nextEntry()
+
+    # completed 99 repeats of 'trials'
 
 
 
