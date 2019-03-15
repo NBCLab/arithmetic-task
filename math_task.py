@@ -23,7 +23,8 @@ os.chdir(script_dir)
 
 # Store info about the experiment session
 exp_name = u'math_task'  # from the Builder filename that created this script
-exp_info = {u'operations': ['+', '-', '/', '*', '**', ['+', '-', '/', '*', '**']],
+exp_info = {u'operations': [['+', '-', '/', '*', '**']],
+            u'arithmetic_type':['simple', 'complex', 'harder', 'inferno', 'triple code'],
             u'participant': u'', u'scanner': ['scanner', 'behav_only'],
             u'run_count': 3}
 dlg = gui.DlgFromDict(dictionary=exp_info, title=exp_name,
@@ -97,7 +98,12 @@ MATH_TEXT_BOX = visual.TextStim(win=main_window, name='MATH_TEXT_BOX',
                                 pos=(0, 0), height=0.1, wrapWidth=None, ori=0,
                                 color=u'white', colorSpace='rgb', opacity=1,
                                 depth=0.0)
-
+TEST_TEXT_BOX = visual.TextStim(win=main_window, name='MATH_TEXT_BOX',
+                                text='default text',
+                                font=u'Arial',
+                                pos=(0, 0), height=0.1, wrapWidth=None, ori=0,
+                                color=u'white', colorSpace='rgb', opacity=1,
+                                depth=0.0)
 MATH_FIX = visual.Polygon(win=main_window, name='MATH_FIX',
                           edges=99, size=(0.1, 0.1),
                           ori=0, pos=(0, 0),
@@ -113,7 +119,6 @@ FEEDBACK_TEXT_BOX = visual.TextStim(win=main_window, name='FEEDBACK_TEXT_BOX',
                                     pos=(0, 0), height=0.1, wrapWidth=None, ori=0,
                                     color=u'white', colorSpace='rgb', opacity=1,
                                     depth=0.0)
-ISI = core.StaticPeriod(win=main_window, screenHz=exp_info['frameRate'], name='ISI')
 FEEDBACK_TEXT = ''
 
 
@@ -301,7 +306,6 @@ for run in range(exp_info['run_count']):
                 MATH_TEXT_RESPONSE.status = STOPPED
             if MATH_TEXT_RESPONSE.status == STARTED:
                 current_key_list = event.getKeys(keyList=['1', '2', '3'])
-
                 # check for quit:
                 if "escape" in current_key_list:
                     END_EXP_FLAG = True
@@ -315,7 +319,6 @@ for run in range(exp_info['run_count']):
                     else:
                         MATH_TEXT_RESPONSE.corr = 0
                     # a response ends the routine
-                    CONTINUE_ROUTINE_FLAG = False
 
 
             # *MATH_FIX* updates
@@ -365,7 +368,7 @@ for run in range(exp_info['run_count']):
 
 
         # ------Prepare to start Routine "feedback"-------
-        routine_time = 0
+        feedback_time = 0
         feedback_clock.reset()  # clock
         frame_n = -1
         CONTINUE_ROUTINE_FLAG = True
@@ -377,7 +380,7 @@ for run in range(exp_info['run_count']):
         else:
             FEEDBACK_TEXT = 'Incorrect'
         # keep track of which components have finished
-        feedbackComponents = [FEEDBACK_TEXT_BOX, ISI, MATH_FIX]
+        feedbackComponents = [FEEDBACK_TEXT_BOX, MATH_FIX]
         for thisComponent in feedbackComponents:
             if hasattr(thisComponent, 'status'):
                 thisComponent.status = NOT_STARTED
@@ -385,34 +388,26 @@ for run in range(exp_info['run_count']):
         # -------Start Routine "feedback"-------
         while CONTINUE_ROUTINE_FLAG and routine_timer.getTime() > 0:
             # get current time
-            routine_time = feedback_clock.getTime()
+            feedback_time = feedback_clock.getTime()
             frame_n = frame_n + 1  # number of completed frames (so 0 is the first frame)
             # update/draw components on each frame
 
             # *FEEDBACK_TEXT_BOX* updates
-            if routine_time >= 0.0 and FEEDBACK_TEXT_BOX.status == NOT_STARTED:
+            if feedback_time >= 0.0 and FEEDBACK_TEXT_BOX.status == NOT_STARTED:
                 # keep track of start time/frame for later
-                FEEDBACK_TEXT_BOX.tStart = routine_time
+                FEEDBACK_TEXT_BOX.tStart = feedback_time
                 FEEDBACK_TEXT_BOX.frameNStart = frame_n  # exact frame index
                 FEEDBACK_TEXT_BOX.setAutoDraw(True)
-            frameRemains = 0.0 + 1.0- main_window.monitorFramePeriod * 0.75
-            if FEEDBACK_TEXT_BOX.status == STARTED and routine_time >= frameRemains:
+            frameRemains = 0.0 + 1.0 - main_window.monitorFramePeriod * 0.75
+            if FEEDBACK_TEXT_BOX.status == STARTED and feedback_time >= frameRemains:
                 FEEDBACK_TEXT_BOX.setAutoDraw(False)
-
-            # *ISI* period
-            if routine_time >= 1 and ISI.status == NOT_STARTED:
-                # keep track of start time/frame for later
-                ISI.tStart = routine_time
-                ISI.frameNStart = frame_n  # exact frame index
-                ISI.start(5)
-            if routine_time >= 1 and MATH_FIX.status == NOT_STARTED:
-                MATH_FIX.tStart = routine_time
+            if feedback_time >= 1 and MATH_FIX.status == NOT_STARTED:
+                MATH_FIX.tStart = feedback_time
                 MATH_FIX.frameNStart = frame_n
                 MATH_FIX.setAutoDraw(True)
-            if routine_time >= 1 + 5 * main_window.monitorFramePeriod * 0.75 \
+            if feedback_time >= 1 + 5 * main_window.monitorFramePeriod * 0.75 \
             and MATH_FIX.status == STARTED:
                 MATH_FIX.setAutoDraw(False)
-                ISI.complete()
             # check if all components have finished
             if not CONTINUE_ROUTINE_FLAG:  # a component has requested a forced-end of Routine
                 break
@@ -436,7 +431,6 @@ for run in range(exp_info['run_count']):
                 thisComponent.setAutoDraw(False)
 
         this_experiment.nextEntry()
-
     # completed 99 repeats of 'trials'
 
 
