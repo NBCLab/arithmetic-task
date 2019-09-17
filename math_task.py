@@ -20,11 +20,19 @@ import numpy as np  # whole numpy lib is available, prepend 'np.'
 # Ensure that relative paths start from the same directory as this script
 script_dir = os.path.dirname(os.path.abspath(__file__)).decode(sys.getfilesystemencoding())
 os.chdir(script_dir)
-
+'''
+1.	Simple, easy arithmetic: two 1-digit numbers, one operation
+2.	Simple, medium arithmetic: one 1-digit number and one 2-digit number, one operation
+3.	Simple, hard arithmetic: two 2-digit numbers, one operation
+4.	Complex, easy arithmetic: three 1-digit numbers, two operations
+5.	Complex, medium arithmetic: two 1-digit numbers and one 2-digit number, two operations
+6.	Complex, hard arithmetic: one 1-digit number and two 2-digit numbers, two operations
+7.	Complex, inferno arithmetic: three 2-digit numbers, two operations
+'''
 # Store info about the experiment session
 exp_name = u'math_task'  # from the Builder filename that created this script
-exp_info = {u'operations': [['+', '-', '/', '*', '**']],
-            u'arithmetic_type':['simple', 'complex', 'harder', 'inferno', 'triple code'],
+exp_info = {u'operations': [['+', '-', '/', '*']],
+            u'arithmetic_type':[x for x in range(1, 8)],
             u'participant': u'', u'scanner': ['scanner', 'behav_only'],
             u'run_count': 3}
 dlg = gui.DlgFromDict(dictionary=exp_info, title=exp_name,
@@ -60,7 +68,7 @@ main_window = visual.Window(size=(1366, 768), fullscr=True, screen=0,
                             colorSpace='rgb', blendMode='avg', useFBO=True)
 # store frame rate of monitor if we can measure it
 exp_info['frameRate'] = main_window.getActualFrameRate()
-if exp_info['frameRate'] != None:
+if exp_info['frameRate']:
     frame_duration = 1.0 / round(exp_info['frameRate'])
 else:
     frame_duration = 1.0 / 60.0  # could not measure, so guess
@@ -75,7 +83,7 @@ if exp_info['scanner'] == 'scanner':
     \n      2 - Equal to   \
     \n      3 - Greater Than'
 else:
-    INTRUSCTION_TEXT = \
+    INSTRUCTION_TEXT = \
     ' You will be shown a series of formulas, \
     \nyou must determine if the result is less than, equal to,  or greater than 5 \
     \n      1 - Less Than  \
@@ -202,7 +210,7 @@ for run in range(exp_info['run_count']):
     if INSTRUCTION_END_RESP.keys in ['', [], None]:  # No response was made
         INSTRUCTION_END_RESP.keys = None
     this_experiment.addData('INSTRUCTION_END_RESP.keys', INSTRUCTION_END_RESP.keys)
-    if INSTRUCTION_END_RESP.keys != None:  # we had a response
+    if INSTRUCTION_END_RESP.keys:  # we had a response
         this_experiment.addData('INSTRUCTION_END_RESP.rt', INSTRUCTION_END_RESP.rt)
     this_experiment.nextEntry()
     # the Routine "instructions" was not non-slip safe, so reset the non-slip timer
@@ -254,10 +262,47 @@ for run in range(exp_info['run_count']):
         routine_timer.add(5.500000)
         # update component parameters for each repeat
         MATH_TEXT_RESPONSE = event.BuilderKeyResponse()
-        num_one = np.random.randint(0, 9)
-        num_two = np.random.randint(0, 9)
-        operator = exp_info['operations'][np.random.randint(0, len(exp_info['operations']))]
-        MATH_TEXT = '{0} {1} {2}'.format(num_one, operator, num_two)
+        numbers = []
+        if exp_info['arithmetic_type'] == 1:
+            numbers = [np.random.randint(0, 9), np.random.randint(0, 9)]
+        elif exp_info['arithmetic_type'] == 2:
+            numbers = [np.random.randint(0, 9), np.random.randint(10, 99)]
+        elif exp_info['arithmetic_type'] == 3:
+            numbers = [np.random.randint(10, 99), np.random.randint(10, 99)]
+        elif exp_info['arithmetic_type'] == 4:
+            numbers = [np.random.randint(0, 9),
+                       np.random.randint(0, 9),
+                       np.random.randint(0, 9)]
+        elif exp_info['arithmetic_type'] == 5:
+            numbers = [np.random.randint(0, 9),
+                       np.random.randint(0, 9),
+                       np.random.randint(10, 99)]
+        elif exp_info['arithmetic_type'] == 6:
+            numbers = [np.random.randint(0, 9),
+                       np.random.randint(10, 99),
+                       np.random.randint(10, 99)]
+        elif exp_info['arithmetic_type'] == 7:
+            numbers = [np.random.randint(10, 99),
+                       np.random.randint(10, 99),
+                       np.random.randint(10, 99)]
+        if exp_info['arithmetic_type'] < 4:
+            operators = [exp_info['operations'][np.random.randint(0, len(exp_info['operations']))]]
+        else:
+            operators = [exp_info['operations'][np.random.randint(0, len(exp_info['operations']))],
+                         exp_info['operations'][np.random.randint(0, len(exp_info['operations']))]]
+        np.random.shuffle(numbers)
+        np.random.shuffle(operators)
+        print(type(exp_info['arithmetic_type']))
+        if exp_info['arithmetic_type'] < 4:
+            MATH_TEXT = '{0} {1} {2}'.format(numbers[0],
+                                             operators[0],
+                                             numbers[1])
+        elif exp_info['arithmetic_type'] >= 4:
+            MATH_TEXT = '{0} {1} {2} {3} {4}'.format(numbers[0],
+                                                     operators[0],
+                                                     numbers[1],
+                                                     operators[1],
+                                                     numbers[2])
         MATH_TEXT_BOX.setText(MATH_TEXT)
         print(MATH_TEXT_BOX.text)
         MATH_VAL = eval(MATH_TEXT)
@@ -327,7 +372,7 @@ for run in range(exp_info['run_count']):
                 MATH_FIX.tStart = trial_time
                 MATH_FIX.frameNStart = frame_n  # exact frame index
                 MATH_FIX.setAutoDraw(True)
-            frameRemains = 5 + .5- main_window.monitorFramePeriod * 0.75
+            frameRemains = 5 + .5 - main_window.monitorFramePeriod * 0.75
             if MATH_FIX.status == STARTED and trial_time >= frameRemains:
                 MATH_FIX.setAutoDraw(False)
 
@@ -352,18 +397,11 @@ for run in range(exp_info['run_count']):
         for this_component in trial_components:
             if hasattr(this_component, "setAutoDraw"):
                 this_component.setAutoDraw(False)
-        # check responses
-        if MATH_TEXT_RESPONSE.keys in ['', [], None]:  # No response was made
-            MATH_TEXT_RESPONSE.keys = None
-            # was no response the correct answer?!
-            if str(MATH_CORR).lower() == 'none':
-                MATH_TEXT_RESPONSE.corr = 1  # correct non-response
-            else:
-                MATH_TEXT_RESPONSE.corr = 0  # failed to respond (incorrectly)
+                
         # store data for trials (TrialHandler)
         trials.addData('MATH_TEXT_RESPONSE.keys', MATH_TEXT_RESPONSE.keys)
         trials.addData('MATH_TEXT_RESPONSE.corr', MATH_TEXT_RESPONSE.corr)
-        if MATH_TEXT_RESPONSE.keys != None:  # we had a response
+        if MATH_TEXT_RESPONSE.keys:  # we had a response
             trials.addData('MATH_TEXT_RESPONSE.rt', MATH_TEXT_RESPONSE.rt)
 
 
