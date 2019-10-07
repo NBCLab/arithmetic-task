@@ -16,6 +16,7 @@ import sys  # to get file system encoding
 import json
 import itertools as it
 from glob import glob
+from datetime import datetime
 import pandas as pd
 from psychopy import locale_setup, sound, gui, visual, core, data, event, logging
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
@@ -27,14 +28,27 @@ from numpy.random import random, randint, normal, shuffle
 
 
 # Ensure that relative paths start from the same directory as this script
-script_dir = os.path.dirname(os.path.abspath(__file__)).decode(sys.getfilesystemencoding())
+try:
+    script_dir = os.path.dirname(os.path.abspath(__file__)).decode(sys.getfilesystemencoding())
+except AttributeError:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
 os.chdir(script_dir)
 
 # Store info about the experiment session
-exp_name = 'math_task.py'
+exp_name = 'math'
 exp_info = {'participant':'', 'session':'001',
             'scanner': ['scanner', 'behav_only'],
             'runs':1}
+
+NUM_TYPE_DICT = {'n': 'digits',
+                 'a': 'analog'}
+OPERATOR_DICT = {'+': 'add', '-':'subtract', '/':'divide', '*':'multiply'}
+LEAD_IN_TIME = 6.
+FEEDBACK_DURATION = 2.
+COMPARISON_DURATION = 5.
+FORMULA_DURATION = 2.
+
 dlg = gui.DlgFromDict(dictionary=exp_info, title=exp_name)
 if not dlg.OK:
     core.quit()  # user pressed cancel
@@ -46,9 +60,10 @@ if exp_info['participant'] not in config_data:
     raise ValueError('Subject ID "{0}" not in config_data'.format(exp_info['participant']))
 
 # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
-filename = script_dir + os.sep + u'data/%s_%s_%s' % (exp_info['participant'],
-                                                     exp_name,
-                                                     exp_info['date'])
+filename = script_dir + os.sep + u'data/%s_%s_%s_%s' % (exp_info['participant'],
+                                                        exp_info['session'],
+                                                        exp_name,
+                                                        exp_info['date'])
 
 # An ExperimentHandler isn't essential but helps with data saving
 curr_exp = data.ExperimentHandler(name=exp_name, version='',
@@ -122,7 +137,6 @@ rval_image = visual.ImageStim(win=win, name='rval_image',
                               color=[1, 1, 1],
                               colorSpace='rgb',
                               opacity=1, depth=-1.0, interpolate=True)
-
 feedback_image = visual.ImageStim(win=win, name='feedback_image',
                                   image=None,
                                   size=(0.25, 0.375),
@@ -130,6 +144,7 @@ feedback_image = visual.ImageStim(win=win, name='feedback_image',
                                   color=[1, 1, 1],
                                   colorSpace='rgb',
                                   opacity=1, depth=-1.0, interpolate=True)
+
 # Initialize components for Routine "pre_comparison_interval"
 pre_comparison_interval_clock = core.Clock()
 begin_fixClock = core.Clock()
@@ -149,16 +164,15 @@ comparison_image = visual.ImageStim(win=win, name='r3_image',
                                     color=[1, 1, 1],
                                     colorSpace='rgb',
                                     opacity=1, depth=-1.0, interpolate=True)
+
 # Initialize components for Routine "post_comparison_interval"
 post_comparison_interval_clock = core.Clock()
-
 
 # Initialize components for Routine "feedback_window"
 feedback_window_clock = core.Clock()
 
 # Initialize components for Routine "post_feedback_interval"
 post_feedback_interval_clock = core.Clock()
-
 
 # Create some handy timers
 global_clock = core.Clock()  # to track the time since experiment started
@@ -172,14 +186,23 @@ run_loop = data.TrialHandler(nReps=n_runs, method='random',
 curr_exp.addLoop(run_loop)  # add the loop to the experiment
 curr_run = run_loop.trialList[0]  # so we can initialise stimuli with some values
 
+startTime = datetime.now()
+
 for curr_run in run_loop:
+    global_clock.reset()
+
     run_data = {'onset':[], 'duration':[], 'trial_type':[],
                 'operation':[], 'feedback_type':[], 'comparison':[],
-                'response_time':[], 'correct':[]}
+                'response_time':[], 'accuracy':[], 'response': [],
+                'stimfile_operator': [], 'stimfile_feedback': [],
+                'stimfile_left': [], 'stimfile_right': [],
+                'comparison_onset': [], 'comparison_duration': [],
+                'feedback_onset': [], 'feedback_duration': []}
     currentLoop = run_loop
     # abbreviate parameter names if possible (e.g. rgb = curr_run.rgb)
     run_label = str(run_loop.thisN + 1)
-    out_file = 'data/sub-{0}_task-math_run-0{1}.tsv'.format(exp_info['participant'], run_label)
+    out_file = 'data/sub-{0}_ses-{1}_task-math_run-0{2}.tsv'.format(
+        exp_info['participant'], exp_info['session'], run_label)
     # ------Prepare to start Routine "instructions"-------
     t = 0
     instructions_clock.reset()  # clock
@@ -216,6 +239,7 @@ for curr_run in run_loop:
             # keyboard checking is just starting
             win.callOnFlip(instruction_end_resp.clock.reset)
             event.clearEvents(eventType='keyboard')
+
         if instruction_end_resp.status == STARTED:
             current_key_list = event.getKeys(keyList=['space', '5'])
 
@@ -256,14 +280,15 @@ for curr_run in run_loop:
     begin_fixClock.reset()  # clock
     frameN = -1
     continueRoutine = True
-    routine_timer.add(6.000000)
+    routine_timer.add(LEAD_IN_TIME)
     # update component parameters for each repeat
     # keep track of which components have finished
     begin_fixComponents = [fixation_text]
     for thisComponent in begin_fixComponents:
         if hasattr(thisComponent, 'status'):
             thisComponent.status = NOT_STARTED
-# -------Start Routine "begin_fix"-------
+
+    # -------Start Routine "begin_fix"-------
     while continueRoutine and routine_timer.getTime() > 0:
         # get current time
         t = begin_fixClock.getTime()
@@ -304,12 +329,10 @@ for curr_run in run_loop:
         if hasattr(thisComponent, "setAutoDraw"):
             thisComponent.setAutoDraw(False)
 
-
-
     # the Routine "instructions" was not non-slip safe, so reset the non-slip timer
     routine_timer.reset()
     n_trials = len(config_data[exp_info['participant']][run_label])
-    print(n_trials)
+
     # set up handler to look after randomisation of conditions etc
     trial_loop = data.TrialHandler(nReps=5, method='random',
                                    extraInfo=exp_info, originPath=-1,
@@ -318,19 +341,18 @@ for curr_run in run_loop:
     curr_exp.addLoop(trial_loop)  # add the loop to the experiment
     curr_trial = trial_loop.trialList[0]  # so we can initialise stimuli with some values
 
-    global_clock.reset()
     for curr_trial in trial_loop:
         currentLoop = trial_loop
         trial_label = trial_loop.thisN
 
         operation, feedback, num_type, comparison = \
         config_data[exp_info['participant']][run_label][trial_label]
+        comparison = int(comparison)
         operator = [x for x in operation if not x.isdigit()][0]
-        operators = {'+': 'add', '-':'subtract', '/':'divide', '*':'multiply'}
 
         lval, rval = operation.split(operator)
-        lval_image.setImage(os.path.abspath(r'numerals/{0:02d}{1}.png'.format(int(lval), num_type)))
-        rval_image.setImage(os.path.abspath(r'numerals/{0:02d}{1}.png'.format(int(rval), num_type)))
+        lval_image.setImage(r'numerals/{0:02d}{1}.png'.format(int(lval), num_type))
+        rval_image.setImage(r'numerals/{0:02d}{1}.png'.format(int(rval), num_type))
         if num_type == 'a':
             lval_image.size = (0.45, 0.675)
             rval_image.size = (0.45, 0.675)
@@ -341,8 +363,8 @@ for curr_run in run_loop:
             rval_image.size = (0.3, 0.45)
             lval_image.pos = (-0.3, 0.0)
             rval_image.pos = (0.3, 0.0)
-        op_image.setImage(os.path.abspath(r'numerals/{0}.png'.format(operators[operator])))
-        comparison_image.setImage(os.path.abspath(r'numerals/{0:02d}n.png'.format(int(comparison))))
+        op_image.setImage(r'numerals/{0}.png'.format(OPERATOR_DICT[operator]))
+        comparison_image.setImage(r'numerals/{0:02d}n.png'.format(int(comparison)))
         result = eval(operation)
         if result > comparison:
             corr_resp = 3
@@ -356,7 +378,7 @@ for curr_run in run_loop:
         equation_window_clock.reset()  # clock
         frameN = -1
         CONTINUE_ROUTINE_FLAG = True
-        routine_timer.add(5.000000)
+        routine_timer.add(COMPARISON_DURATION)
         # update component parameters for each repeat
         # keep track of which components have finished
         equation_windowComponents = [lval_image, op_image, rval_image]
@@ -377,7 +399,7 @@ for curr_run in run_loop:
                 lval_image.tStart = t
                 lval_image.frameNStart = frameN  # exact frame index
                 lval_image.setAutoDraw(True)
-                onset_time = global_clock.getTime() + 6
+                onset_time = global_clock.getTime()
             frameRemains = 0.0 + 5- win.monitorFramePeriod * 0.75  # most of one frame period left
             if lval_image.status == STARTED and t >= frameRemains:
                 lval_image.setAutoDraw(False)
@@ -502,6 +524,7 @@ for curr_run in run_loop:
                 comparison_image.tStart = t
                 comparison_image.frameNStart = frameN  # exact frame index
                 comparison_image.setAutoDraw(True)
+                comparison_onset_time = global_clock.getTime()
             frameRemains = 0.0 + 5- win.monitorFramePeriod * 0.75  # most of one frame period left
             if comparison_image.status == STARTED and t >= frameRemains:
                 comparison_image.setAutoDraw(False)
@@ -516,6 +539,7 @@ for curr_run in run_loop:
             if comparison_resp.status == STARTED \
             and t >= frameRemains: #most of one frame period left
                 comparison_resp.status = STOPPED
+
             if comparison_resp.status == STARTED:
                 theseKeys = event.getKeys(keyList=['1', '2', '3'])
 
@@ -523,10 +547,11 @@ for curr_run in run_loop:
                 if "escape" in theseKeys:
                     END_EXP_FLAG = True
                 if theseKeys:  # at least one key was pressed
-                    comparison_resp.keys = theseKeys[-1]  # just the last key pressed
+                    comparison_resp.keys = int(theseKeys[-1])  # just the last key pressed
                     comparison_resp.rt = comparison_resp.clock.getTime()
                     # a response ends the routine
                     #continueRoutine = False
+
             # check if all components have finished
             if not CONTINUE_ROUTINE_FLAG:  # a component has requested a forced-end of Routine
                 break
@@ -579,6 +604,7 @@ for curr_run in run_loop:
                 fixation_text.tStart = t
                 fixation_text.frameNStart = frameN  # exact frame index
                 fixation_text.setAutoDraw(True)
+
             frameRemains = 0.0 + .5- win.monitorFramePeriod * 0.75  # most of one frame period left
             if fixation_text.status == STARTED and t >= frameRemains:
                 fixation_text.setAutoDraw(False)
@@ -586,6 +612,7 @@ for curr_run in run_loop:
             # check if all components have finished
             if not CONTINUE_ROUTINE_FLAG:  # a component has requested a forced-end of Routine
                 break
+
             CONTINUE_ROUTINE_FLAG = False  #at least one component still running
             for thisComponent in post_comparison_intervalComponents:
                 if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
@@ -608,22 +635,30 @@ for curr_run in run_loop:
                 thisComponent.setAutoDraw(False)
 
         # ------Prepare to start Routine "feedback_window"-------
-        if comparison_resp.keys == corr_resp:
+        if isinstance(comparison_resp.keys, list):
+            trial_status = 'no_response'
+            response_value = 'n/a'
+        elif comparison_resp.keys == corr_resp:
             trial_status = 'correct'
-        elif comparison_resp.keys != corr_resp:
+            response_value = comparison_resp.keys
+        else:
             trial_status = 'incorrect'
+            response_value = comparison_resp.keys
+
         if feedback == 'noninformative':
             feedback_image.image = 'feedback/noninformative.png'
-        elif trial_status == 'correct' and feedback == 'informative':
+        elif trial_status == 'correct':
             feedback_image.image = 'feedback/positive.png'
-        elif trial_status == 'incorrect' and feedback == 'informative':
+        elif trial_status == 'incorrect':
+            feedback_image.image = 'feedback/negative.png'
+        else:
             feedback_image.image = 'feedback/negative.png'
 
         t = 0
         feedback_window_clock.reset()  # clock
         frameN = -1
         CONTINUE_ROUTINE_FLAG = True
-        routine_timer.add(2.00000)
+        routine_timer.add(FEEDBACK_DURATION)
         # update component parameters for each repeat
         # keep track of which components have finished
         feedback_windowComponents = [feedback_image]
@@ -642,7 +677,8 @@ for curr_run in run_loop:
                 feedback_image.tStart = t
                 feedback_image.frameNStart = frameN  # exact frame index
                 feedback_image.setAutoDraw(True)
-            frameRemains = 0.0 + 2 - win.monitorFramePeriod * 0.75  # most of one frame period left
+                feedback_onset_time = global_clock.getTime()
+            frameRemains = FORMULA_DURATION - win.monitorFramePeriod * 0.75  # most of one frame period left
             if feedback_image.status == STARTED and t >= frameRemains:
                 feedback_image.setAutoDraw(False)
             # check if all components have finished
@@ -671,13 +707,23 @@ for curr_run in run_loop:
         # the Routine "feedback_window" was not non-slip safe, so reset the non-slip timer
         routine_timer.reset()
         run_data['onset'].append(onset_time)
-        run_data['duration'].append(2)
-        run_data['trial_type'].append(num_type)
+        run_data['duration'].append(FORMULA_DURATION)
+        run_data['trial_type'].append(NUM_TYPE_DICT[num_type])
+        run_data['response_time'].append(comparison_resp.rt if not isinstance(comparison_resp.rt, list) else 'n/a')
         run_data['operation'].append(operation)
         run_data['feedback_type'].append(feedback)
         run_data['comparison'].append(comparison)
-        run_data['response_time'].append(comparison_resp.keys)
-        run_data['correct'].append(trial_status)
+        run_data['accuracy'].append(trial_status)
+        run_data['response'].append(response_value)
+        run_data['stimfile_left'].append(lval_image.image)
+        run_data['stimfile_right'].append(rval_image.image)
+        run_data['stimfile_operator'].append(op_image.image)
+        run_data['stimfile_feedback'].append(feedback_image.image)
+        run_data['comparison_onset'].append(comparison_onset_time)
+        run_data['comparison_duration'].append(COMPARISON_DURATION)
+        run_data['feedback_onset'].append(feedback_onset_time)
+        run_data['feedback_duration'].append(FEEDBACK_DURATION)
+
         # ------Prepare to start Routine "post_feedback_interval"-------
         t = 0
         post_feedback_interval_clock.reset()  # clock
@@ -744,6 +790,10 @@ for curr_run in run_loop:
 curr_exp.saveAsWideText(filename+'.csv')
 curr_exp.saveAsPickle(filename)
 logging.flush()
+
+duration = datetime.now() - startTime
+print('Total duration of task: {}'.format(duration))
+
 # make sure everything is closed down
 curr_exp.abort()  # or data files will save again on exit
 win.close()
