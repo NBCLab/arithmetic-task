@@ -96,14 +96,16 @@ instructions_clock = core.Clock()
 if exp_info['scanner'] == 'scanner':
     instruction_text = \
     ' You will be shown a series of formulas, \
-    \nyou must determine if the result is less than, equal to,  or greater than 5 \
+    \nyou must determine if the result is less than, equal to, greater than, \
+    \nthe value that follows \
     \n      1 - Less Than  \
     \n      2 - Equal to   \
     \n      3 - Greater Than'
 else:
     instruction_text = \
     ' You will be shown a series of formulas, \
-    \nyou must determine if the result is less than, equal to,  or greater than 5 \
+    \nyou must determine if the result is less than, equal to, greater than, \
+    \nthe value that follows \
     \n      1 - Less Than  \
     \n      2 - Equal to   \
     \n      3 - Greater Than'
