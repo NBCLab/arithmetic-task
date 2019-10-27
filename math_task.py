@@ -336,7 +336,7 @@ for curr_run in run_loop:
     n_trials = len(config_data[exp_info['participant']][run_label])
 
     # set up handler to look after randomisation of conditions etc
-    trial_loop = data.TrialHandler(nReps=5, method='random',
+    trial_loop = data.TrialHandler(nReps=n_trials, method='random',
                                    extraInfo=exp_info, originPath=-1,
                                    trialList=[None],
                                    seed=None, name='trial_loop')
