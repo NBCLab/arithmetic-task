@@ -103,6 +103,7 @@ instruction_text = \
 \n      1 - Less Than  \
 \n      2 - Equal to   \
 \n      3 - Greater Than'
+
 instruction_text_box = visual.TextStim(win=win, name='instruction_text_box',
                                        text=instruction_text,
                                        font=u'Arial',
