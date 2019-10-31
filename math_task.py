@@ -342,7 +342,8 @@ for curr_run in run_loop:
     curr_trial = trial_loop.trialList[0]  # so we can initialise stimuli with some values
 
     for curr_trial in trial_loop:
-        # This section (before the "prepare" portion) takes ~0.4s
+        # This section (before the "prepare" portion) takes ~0.4s with 300dpi images
+        # Within reasonable range for 72dpi images
         currentLoop = trial_loop
         trial_label = trial_loop.thisN
 
