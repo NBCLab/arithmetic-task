@@ -82,7 +82,7 @@ END_EXP_FLAG = False  # flag for 'escape' or other condition => quit the exp
 
 # Setup the Window
 win = visual.Window(
-    fullscr=True, size=(800, 600), monitor='testMonitor', units='deg',
+    fullscr=True, size=(800, 600), monitor='testMonitor', units='norm',
     # fullscr=False, size=(800, 600), monitor='testMonitor', units='deg',
     allowGUI=False, allowStencil=False,
     color='black', colorSpace='rgb',
@@ -106,7 +106,7 @@ instruction_text = \
 instruction_text_box = visual.TextStim(win=win, name='instruction_text_box',
                                        text=instruction_text,
                                        font=u'Arial',
-                                       height=0.5,
+                                       height=0.1,
                                        pos=(0, 0), wrapWidth=None, ori=0,
                                        color='white', colorSpace='rgb', opacity=1,
                                        depth=-1.0)
@@ -189,7 +189,7 @@ for curr_run in run_loop:
     global_clock.reset()
 
     run_data = {'onset':[], 'duration':[], 'trial_type':[],
-                'operation':[], 'feedback_type':[], 'comparison':[],
+                'equation':[], 'feedback_type':[], 'comparison':[],
                 'response_time':[], 'accuracy':[], 'response': [],
                 'stimfile_operator': [], 'stimfile_feedback': [],
                 'stimfile_left': [], 'stimfile_right': [],
@@ -277,7 +277,8 @@ for curr_run in run_loop:
     begin_fixClock.reset()  # clock
     frameN = -1
     continueRoutine = True
-    routine_timer.add(LEAD_IN_TIME)
+    #routine_timer.reset()
+    #routine_timer.add(LEAD_IN_TIME)
     # update component parameters for each repeat
     # keep track of which components have finished
     begin_fixComponents = [fixation_text]
@@ -286,7 +287,7 @@ for curr_run in run_loop:
             thisComponent.status = NOT_STARTED
 
     # -------Start Routine "begin_fix"-------
-    while continueRoutine and routine_timer.getTime() > 0:
+    while continueRoutine:# and routine_timer.getTime() > 0:
         # get current time
         t = begin_fixClock.getTime()
         frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
@@ -710,7 +711,7 @@ for curr_run in run_loop:
         run_data['duration'].append(FORMULA_DURATION)
         run_data['trial_type'].append(num_type)
         run_data['response_time'].append(comparison_resp.rt if not isinstance(comparison_resp.rt, list) else 'n/a')
-        run_data['operation'].append(operation)
+        run_data['equation'].append(equation)
         run_data['feedback_type'].append(feedback)
         run_data['comparison'].append(comparison)
         run_data['accuracy'].append(trial_status)
