@@ -277,8 +277,8 @@ for curr_run in run_loop:
     begin_fixClock.reset()  # clock
     frameN = -1
     continueRoutine = True
-    #routine_timer.reset()
-    #routine_timer.add(LEAD_IN_TIME)
+    routine_timer.reset()
+    routine_timer.add(LEAD_IN_TIME)
     # update component parameters for each repeat
     # keep track of which components have finished
     begin_fixComponents = [fixation_text]
@@ -379,6 +379,7 @@ for curr_run in run_loop:
         equation_window_clock.reset()  # clock
         frameN = -1
         CONTINUE_ROUTINE_FLAG = True
+        routine_timer.reset()
         routine_timer.add(COMPARISON_DURATION)
         # update component parameters for each repeat
         # keep track of which components have finished
