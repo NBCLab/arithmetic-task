@@ -85,8 +85,8 @@ END_EXP_FLAG = False  # flag for 'escape' or other condition => quit the exp
 
 # Setup the Window
 win = visual.Window(
-    #fullscr=True, size=(800, 600), monitor='testMonitor', units='norm',
-    fullscr=False, size=(800, 600), monitor='testMonitor', units='norm',
+    fullscr=True, size=(800, 600), monitor='testMonitor', units='norm',
+    # fullscr=False, size=(800, 600), monitor='testMonitor', units='norm',
     allowGUI=False, allowStencil=False,
     color='black', colorSpace='rgb',
     blendMode='avg', useFBO=True)
