@@ -41,8 +41,8 @@ exp_info = {'participant':'',
             'session':''}
 
 OPERATOR_DICT = {'+': 'add', '-':'subtract', '/':'divide', '*':'multiply'}
-LEAD_IN_TIME = 6.
-EQUATION_DURATION = 3.5
+LEAD_IN_TIME = 0.5
+EQUATION_DURATION = 1.5
 COMPARISON_DURATION = 5.
 FEEDBACK_DURATION = 2.
 ISI1 = 0.5
@@ -279,8 +279,8 @@ for curr_run in run_loop:
     begin_fixClock.reset()  # clock
     frameN = -1
     continueRoutine = True
-    #routine_timer.reset()
-    #routine_timer.add(LEAD_IN_TIME)
+    routine_timer.reset()
+    routine_timer.add(LEAD_IN_TIME)
     # update component parameters for each repeat
     # keep track of which components have finished
     begin_fixComponents = [fixation_text]
@@ -382,6 +382,7 @@ for curr_run in run_loop:
         equation_window_clock.reset()  # clock
         frameN = -1
         CONTINUE_ROUTINE_FLAG = True
+        routine_timer.reset()
         routine_timer.add(EQUATION_DURATION)
         # update component parameters for each repeat
         # keep track of which components have finished
