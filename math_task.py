@@ -42,9 +42,12 @@ exp_info = {'participant':'',
 
 OPERATOR_DICT = {'+': 'add', '-':'subtract', '/':'divide', '*':'multiply'}
 LEAD_IN_TIME = 6.
-FEEDBACK_DURATION = 2.
+EQUATION_DURATION = 3.5
 COMPARISON_DURATION = 5.
-FORMULA_DURATION = 2.
+FEEDBACK_DURATION = 2.
+ISI1 = 0.5
+ISI2 = 0.5
+ITI = 0.5
 
 dlg = gui.DlgFromDict(dictionary=exp_info, title=exp_name)
 if not dlg.OK:
@@ -82,8 +85,8 @@ END_EXP_FLAG = False  # flag for 'escape' or other condition => quit the exp
 
 # Setup the Window
 win = visual.Window(
-    fullscr=True, size=(800, 600), monitor='testMonitor', units='norm',
-    # fullscr=False, size=(800, 600), monitor='testMonitor', units='deg',
+    #fullscr=True, size=(800, 600), monitor='testMonitor', units='norm',
+    fullscr=False, size=(800, 600), monitor='testMonitor', units='norm',
     allowGUI=False, allowStencil=False,
     color='black', colorSpace='rgb',
     blendMode='avg', useFBO=True)
@@ -186,8 +189,6 @@ curr_run = run_loop.trialList[0]  # so we can initialise stimuli with some value
 startTime = datetime.now()
 
 for curr_run in run_loop:
-    global_clock.reset()
-
     run_data = {'onset':[], 'duration':[], 'trial_type':[],
                 'equation':[], 'feedback_type':[], 'comparison':[],
                 'response_time':[], 'accuracy':[], 'response': [],
@@ -273,6 +274,7 @@ for curr_run in run_loop:
             thisComponent.setAutoDraw(False)
 
     # ------Prepare to start Routine "begin_fix"-------
+    global_clock.reset()
     t = 0
     begin_fixClock.reset()  # clock
     frameN = -1
@@ -299,8 +301,8 @@ for curr_run in run_loop:
             fixation_text.tStart = t
             fixation_text.frameNStart = frameN  # exact frame index
             fixation_text.setAutoDraw(True)
-        frameRemains = 0.0 + 6 - win.monitorFramePeriod * 0.75  # most of one frame period left
-        if fixation_text.status == STARTED and t >= frameRemains:
+        frameRemains = LEAD_IN_TIME - win.monitorFramePeriod * 0.75  # most of one frame period left
+        if fixation_text.status == STARTED and t >= LEAD_IN_TIME:
             fixation_text.setAutoDraw(False)
 
         # check if all components have finished
@@ -340,6 +342,7 @@ for curr_run in run_loop:
     curr_trial = trial_loop.trialList[0]  # so we can initialise stimuli with some values
 
     for curr_trial in trial_loop:
+        # This section (before the "prepare" portion) takes ~0.4s
         currentLoop = trial_loop
         trial_label = trial_loop.thisN
 
@@ -379,7 +382,7 @@ for curr_run in run_loop:
         equation_window_clock.reset()  # clock
         frameN = -1
         CONTINUE_ROUTINE_FLAG = True
-        routine_timer.add(COMPARISON_DURATION)
+        routine_timer.add(EQUATION_DURATION)
         # update component parameters for each repeat
         # keep track of which components have finished
         equation_windowComponents = [lval_image, op_image, rval_image]
@@ -396,32 +399,26 @@ for curr_run in run_loop:
 
             # *lval_image* updates
             if t >= 0.0 and lval_image.status == NOT_STARTED:
+                equation_onset_time = global_clock.getTime()
                 # keep track of start time/frame for later
                 lval_image.tStart = t
                 lval_image.frameNStart = frameN  # exact frame index
                 lval_image.setAutoDraw(True)
-                onset_time = global_clock.getTime()
-            frameRemains = 0.0 + 5- win.monitorFramePeriod * 0.75  # most of one frame period left
-            if lval_image.status == STARTED and t >= frameRemains:
-                lval_image.setAutoDraw(False)
-            # *op_image* updates
-            if t >= 0.0 and op_image.status == NOT_STARTED:
                 # keep track of start time/frame for later
                 op_image.tStart = t
                 op_image.frameNStart = frameN  # exact frame index
                 op_image.setAutoDraw(True)
-            frameRemains = 0.0 + 5- win.monitorFramePeriod * 0.75  # most of one frame period left
-            if op_image.status == STARTED and t >= frameRemains:
-                op_image.setAutoDraw(False)
-
-            if t >= 0.0 and rval_image.status == NOT_STARTED:
                 # keep track of start time/frame for later
                 rval_image.tStart = t
                 rval_image.frameNStart = frameN  # exact frame index
                 rval_image.setAutoDraw(True)
-            frameRemains = 0.0 + 5- win.monitorFramePeriod * 0.75  # most of one frame period left
-            if rval_image.status == STARTED and t >= frameRemains:
+
+            frameRemains = EQUATION_DURATION - win.monitorFramePeriod * 0.75  # most of one frame period left
+            if lval_image.status == STARTED and t >= frameRemains:
+                lval_image.setAutoDraw(False)
+                op_image.setAutoDraw(False)
                 rval_image.setAutoDraw(False)
+
             # check if all components have finished
             if not CONTINUE_ROUTINE_FLAG:  # a component has requested a forced-end of Routine
                 break
@@ -445,13 +442,17 @@ for curr_run in run_loop:
         for thisComponent in equation_windowComponents:
             if hasattr(thisComponent, "setAutoDraw"):
                 thisComponent.setAutoDraw(False)
+        # the Routine "equation_window" was not non-slip safe, so reset the non-slip timer
+        routine_timer.reset()
+
+        equation_duration = global_clock.getTime() - equation_onset_time
 
         # ------Prepare to start Routine "pre_comparison_interval"-------
         t = 0
         pre_comparison_interval_clock.reset()  # clock
         frameN = -1
         CONTINUE_ROUTINE_FLAG = True
-        routine_timer.add(0.500000)
+        routine_timer.add(ISI1)
         # update component parameters for each repeat
         # keep track of which components have finished
         pre_comparison_intervalComponents = [fixation_text]
@@ -472,7 +473,7 @@ for curr_run in run_loop:
                 fixation_text.tStart = t
                 fixation_text.frameNStart = frameN  # exact frame index
                 fixation_text.setAutoDraw(True)
-            frameRemains = 0.0 + .5- win.monitorFramePeriod * 0.75  # most of one frame period left
+            frameRemains = ISI1 - win.monitorFramePeriod * 0.75  # most of one frame period left
             if fixation_text.status == STARTED and t >= frameRemains:
                 fixation_text.setAutoDraw(False)
 
@@ -505,6 +506,7 @@ for curr_run in run_loop:
         comparison_window_clock.reset()  # clock
         frameN = -1
         CONTINUE_ROUTINE_FLAG = True
+        routine_timer.add(COMPARISON_DURATION)
         comparison_resp = event.BuilderKeyResponse()
         # update component parameters for each repeat
         # keep track of which components have finished
@@ -526,7 +528,7 @@ for curr_run in run_loop:
                 comparison_image.frameNStart = frameN  # exact frame index
                 comparison_image.setAutoDraw(True)
                 comparison_onset_time = global_clock.getTime()
-            frameRemains = 0.0 + 5- win.monitorFramePeriod * 0.75  # most of one frame period left
+            frameRemains = COMPARISON_DURATION - win.monitorFramePeriod * 0.75  # most of one frame period left
             if comparison_image.status == STARTED and t >= frameRemains:
                 comparison_image.setAutoDraw(False)
             if t >= 0.0 and comparison_resp.status == NOT_STARTED:
@@ -537,8 +539,7 @@ for curr_run in run_loop:
                 # keyboard checking is just starting
                 comparison_resp.clock.reset()  # now t=0
                 event.clearEvents(eventType='keyboard')
-            if comparison_resp.status == STARTED \
-            and t >= frameRemains: #most of one frame period left
+            if comparison_resp.status == STARTED and t >= frameRemains:
                 comparison_resp.status = STOPPED
 
             if comparison_resp.status == STARTED:
@@ -579,12 +580,14 @@ for curr_run in run_loop:
         # the Routine "comparison_window" was not non-slip safe, so reset the non-slip timer
         routine_timer.reset()
 
+        comparison_duration = global_clock.getTime() - comparison_onset_time
+
         # ------Prepare to start Routine "post_comparison_interval"-------
         t = 0
         post_comparison_interval_clock.reset()  # clock
         frameN = -1
         CONTINUE_ROUTINE_FLAG = True
-        routine_timer.add(0.500000)
+        routine_timer.add(ISI2)
         # update component parameters for each repeat
         # keep track of which components have finished
         post_comparison_intervalComponents = [fixation_text]
@@ -606,7 +609,7 @@ for curr_run in run_loop:
                 fixation_text.frameNStart = frameN  # exact frame index
                 fixation_text.setAutoDraw(True)
 
-            frameRemains = 0.0 + .5- win.monitorFramePeriod * 0.75  # most of one frame period left
+            frameRemains = ISI2 - win.monitorFramePeriod * 0.75  # most of one frame period left
             if fixation_text.status == STARTED and t >= frameRemains:
                 fixation_text.setAutoDraw(False)
 
@@ -679,7 +682,7 @@ for curr_run in run_loop:
                 feedback_image.frameNStart = frameN  # exact frame index
                 feedback_image.setAutoDraw(True)
                 feedback_onset_time = global_clock.getTime()
-            frameRemains = FORMULA_DURATION - win.monitorFramePeriod * 0.75  # most of one frame period left
+            frameRemains = FEEDBACK_DURATION - win.monitorFramePeriod * 0.75  # most of one frame period left
             if feedback_image.status == STARTED and t >= frameRemains:
                 feedback_image.setAutoDraw(False)
             # check if all components have finished
@@ -705,10 +708,12 @@ for curr_run in run_loop:
         for thisComponent in feedback_windowComponents:
             if hasattr(thisComponent, "setAutoDraw"):
                 thisComponent.setAutoDraw(False)
+
+        feedback_duration = global_clock.getTime() - feedback_onset_time
         # the Routine "feedback_window" was not non-slip safe, so reset the non-slip timer
         routine_timer.reset()
-        run_data['onset'].append(onset_time)
-        run_data['duration'].append(FORMULA_DURATION)
+        run_data['onset'].append(equation_onset_time)
+        run_data['duration'].append(equation_duration)
         run_data['trial_type'].append(num_type)
         run_data['response_time'].append(comparison_resp.rt if not isinstance(comparison_resp.rt, list) else 'n/a')
         run_data['equation'].append(equation)
@@ -721,16 +726,16 @@ for curr_run in run_loop:
         run_data['stimfile_operator'].append(op_image.image)
         run_data['stimfile_feedback'].append(feedback_image.image)
         run_data['comparison_onset'].append(comparison_onset_time)
-        run_data['comparison_duration'].append(COMPARISON_DURATION)
+        run_data['comparison_duration'].append(comparison_duration)
         run_data['feedback_onset'].append(feedback_onset_time)
-        run_data['feedback_duration'].append(FEEDBACK_DURATION)
+        run_data['feedback_duration'].append(feedback_duration)
 
         # ------Prepare to start Routine "post_feedback_interval"-------
         t = 0
         post_feedback_interval_clock.reset()  # clock
         frameN = -1
         CONTINUE_ROUTINE_FLAG = True
-        routine_timer.add(0.500000)
+        routine_timer.add(ITI)
         # update component parameters for each repeat
         # keep track of which components have finished
         post_feedback_intervalComponents = [fixation_text]
@@ -751,7 +756,7 @@ for curr_run in run_loop:
                 fixation_text.tStart = t
                 fixation_text.frameNStart = frameN  # exact frame index
                 fixation_text.setAutoDraw(True)
-            frameRemains = 0.0 + .5- win.monitorFramePeriod * 0.75  # most of one frame period left
+            frameRemains = ITI - win.monitorFramePeriod * 0.75  # most of one frame period left
             if fixation_text.status == STARTED and t >= frameRemains:
                 fixation_text.setAutoDraw(False)
 
@@ -781,7 +786,6 @@ for curr_run in run_loop:
         curr_exp.nextEntry()
 
     # completed 5 repeats of 'trial_loop'
-
     curr_exp.nextEntry()
     run_frame = pd.DataFrame(run_data)
     run_frame.to_csv(out_file, index=None, sep='\t')

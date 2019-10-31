@@ -39,7 +39,7 @@ def math_gen(n_runs, n_trials,
             second_val = str(np.random.randint(1, 31))
             operator = chosen_operators[j_trial]
             #If the result of division would be less than 1, flip the values
-            if operator == '/' and first_val < second_val:
+            if operator == '/' and int(first_val) < int(second_val):
                 first_val, second_val = second_val, first_val
             equation = first_val + operator + second_val
             result = eval(equation)
