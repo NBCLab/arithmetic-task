@@ -37,12 +37,9 @@ os.chdir(script_dir)
 
 # Store info about the experiment session
 exp_name = 'math'
-exp_info = {'participant':'', 'session':'001',
-            'scanner': ['scanner', 'behav_only'],
-            'runs':1}
+exp_info = {'participant':'',
+            'session':''}
 
-NUM_TYPE_DICT = {'n': 'digits',
-                 'a': 'analog'}
 OPERATOR_DICT = {'+': 'add', '-':'subtract', '/':'divide', '*':'multiply'}
 LEAD_IN_TIME = 6.
 FEEDBACK_DURATION = 2.
@@ -56,6 +53,10 @@ exp_info['date'] = data.getDateStr()  # add a simple timestamp
 exp_info['exp_name'] = exp_name
 with open('config/subject_config.json') as fr:
     config_data = json.load(fr)
+
+exp_info['participant'] = '{0:02d}'.format(int(exp_info['participant']))
+exp_info['session'] = '{0:02d}'.format(int(exp_info['session']))
+
 if exp_info['participant'] not in config_data:
     raise ValueError('Subject ID "{0}" not in config_data'.format(exp_info['participant']))
 
@@ -80,10 +81,12 @@ END_EXP_FLAG = False  # flag for 'escape' or other condition => quit the exp
 # Start Code - component code to be run before the window creation
 
 # Setup the Window
-win = visual.Window(fullscr=True, screen=0,
-                    allowGUI=False, allowStencil=False,
-                    monitor='testMonitor', color=[1, 1, 1], colorSpace='rgb',
-                    blendMode='avg', useFBO=True)
+win = visual.Window(
+    fullscr=True, size=(800, 600), monitor='testMonitor', units='deg',
+    # fullscr=False, size=(800, 600), monitor='testMonitor', units='deg',
+    allowGUI=False, allowStencil=False,
+    color='black', colorSpace='rgb',
+    blendMode='avg', useFBO=True)
 # store frame rate of monitor if we can measure it
 exp_info['frame_rate'] = win.getActualFrameRate()
 if not exp_info['frame_rate']:
@@ -93,27 +96,21 @@ else:
 
 # Initialize components for Routine "instructions"
 instructions_clock = core.Clock()
-if exp_info['scanner'] == 'scanner':
-    instruction_text = \
-    ' You will be shown a series of formulas, \
-    \nyou must determine if the result is less than, equal to,  or greater than 5 \
-    \n      1 - Less Than  \
-    \n      2 - Equal to   \
-    \n      3 - Greater Than'
-else:
-    instruction_text = \
-    ' You will be shown a series of formulas, \
-    \nyou must determine if the result is less than, equal to,  or greater than 5 \
-    \n      1 - Less Than  \
-    \n      2 - Equal to   \
-    \n      3 - Greater Than'
-num_stimuli = glob('numerals/*.png')
+instruction_text = \
+' You will be shown a series of formulas, \
+\nyou must determine if the result is less than, equal to, greater than, \
+\nthe value that follows \
+\n      1 - Less Than  \
+\n      2 - Equal to   \
+\n      3 - Greater Than'
 instruction_text_box = visual.TextStim(win=win, name='instruction_text_box',
                                        text=instruction_text,
                                        font=u'Arial',
-                                       pos=(0, 0), height=0.1, wrapWidth=None, ori=0,
-                                       color=u'black', colorSpace='rgb', opacity=1,
+                                       height=0.5,
+                                       pos=(0, 0), wrapWidth=None, ori=0,
+                                       color='white', colorSpace='rgb', opacity=1,
                                        depth=-1.0)
+
 # Initialize components for Routine "equation_window"
 equation_window_clock = core.Clock()
 lval_image = visual.ImageStim(win=win, name='lval_image',
@@ -152,7 +149,7 @@ fixation_text = visual.TextStim(win=win, name='operator_text',
                                 text=u'\u2022', font=u'Arial',
                                 pos=(0, 0), height=0.14,
                                 wrapWidth=None, ori=0,
-                                color=u'black', colorSpace='rgb',
+                                color='white', colorSpace='rgb',
                                 opacity=1, depth=0.0)
 
 # Initialize components for Routine "comparison_window"
@@ -177,7 +174,7 @@ post_feedback_interval_clock = core.Clock()
 # Create some handy timers
 global_clock = core.Clock()  # to track the time since experiment started
 routine_timer = core.CountdownTimer()  # to track time remaining of each (non-slip) routine
-n_runs = len(config_data[exp_info['participant']])
+n_runs = len(config_data[exp_info['participant']][exp_info['session']])
 # set up handler to look after randomisation of conditions etc
 run_loop = data.TrialHandler(nReps=n_runs, method='random',
                              extraInfo=exp_info, originPath=-1,
@@ -200,8 +197,8 @@ for curr_run in run_loop:
                 'feedback_onset': [], 'feedback_duration': []}
     currentLoop = run_loop
     # abbreviate parameter names if possible (e.g. rgb = curr_run.rgb)
-    run_label = str(run_loop.thisN + 1)
-    out_file = 'data/sub-{0}_ses-{1}_task-math_run-0{2}.tsv'.format(
+    run_label = run_loop.thisN + 1
+    out_file = 'data/sub-{0}_ses-{1}_task-math_run-{2:02d}.tsv'.format(
         exp_info['participant'], exp_info['session'], run_label)
     # ------Prepare to start Routine "instructions"-------
     t = 0
@@ -241,7 +238,7 @@ for curr_run in run_loop:
             event.clearEvents(eventType='keyboard')
 
         if instruction_end_resp.status == STARTED:
-            current_key_list = event.getKeys(keyList=['space', '5'])
+            current_key_list = event.getKeys(keyList=['5'])
 
             # check for quit:
             if "escape" in current_key_list:
@@ -331,10 +328,10 @@ for curr_run in run_loop:
 
     # the Routine "instructions" was not non-slip safe, so reset the non-slip timer
     routine_timer.reset()
-    n_trials = len(config_data[exp_info['participant']][run_label])
+    n_trials = len(config_data[exp_info['participant']][exp_info['session']][str(run_label)])
 
     # set up handler to look after randomisation of conditions etc
-    trial_loop = data.TrialHandler(nReps=5, method='random',
+    trial_loop = data.TrialHandler(nReps=n_trials, method='random',
                                    extraInfo=exp_info, originPath=-1,
                                    trialList=[None],
                                    seed=None, name='trial_loop')
@@ -345,32 +342,35 @@ for curr_run in run_loop:
         currentLoop = trial_loop
         trial_label = trial_loop.thisN
 
-        operation, feedback, num_type, comparison = \
-        config_data[exp_info['participant']][run_label][trial_label]
-        comparison = int(comparison)
-        operator = [x for x in operation if not x.isdigit()][0]
+        trial_config = config_data[exp_info['participant']][exp_info['session']][str(run_label)][trial_label]
+        equation = trial_config['equation']
+        feedback = trial_config['feedback']
+        num_type = trial_config['representation']
+        comparison = int(trial_config['comparison'])
+        rounded_difference = int(trial_config['rounded_difference'])
+        solution = trial_config['solution']
 
-        lval, rval = operation.split(operator)
-        lval_image.setImage(r'numerals/{0:02d}{1}.png'.format(int(lval), num_type))
-        rval_image.setImage(r'numerals/{0:02d}{1}.png'.format(int(rval), num_type))
-        if num_type == 'a':
+        operator = [x for x in equation if not x.isdigit()][0]
+        lval, rval = equation.split(operator)
+        lval_image.setImage(r'numerals/{0:02d}{1}.png'.format(int(lval), num_type[0]))
+        rval_image.setImage(r'numerals/{0:02d}{1}.png'.format(int(rval), num_type[0]))
+        if num_type == 'analog':
             lval_image.size = (0.45, 0.675)
             rval_image.size = (0.45, 0.675)
             lval_image.pos = (-0.45, 0.0)
             rval_image.pos = (0.45, 0.0)
-        elif num_type == 'n':
+        elif num_type == 'numeric':
             lval_image.size = (0.3, 0.45)
             rval_image.size = (0.3, 0.45)
             lval_image.pos = (-0.3, 0.0)
             rval_image.pos = (0.3, 0.0)
         op_image.setImage(r'numerals/{0}.png'.format(OPERATOR_DICT[operator]))
-        comparison_image.setImage(r'numerals/{0:02d}n.png'.format(int(comparison)))
-        result = eval(operation)
-        if result > comparison:
+        comparison_image.setImage(r'numerals/{0:02d}n.png'.format(comparison))
+        if solution > comparison:
             corr_resp = 3
-        elif result == comparison:
+        elif solution == comparison:
             corr_resp = 2
-        elif result < comparison:
+        elif solution < comparison:
             corr_resp = 1
 
         # ------Prepare to start Routine "equation_window"-------
@@ -708,7 +708,7 @@ for curr_run in run_loop:
         routine_timer.reset()
         run_data['onset'].append(onset_time)
         run_data['duration'].append(FORMULA_DURATION)
-        run_data['trial_type'].append(NUM_TYPE_DICT[num_type])
+        run_data['trial_type'].append(num_type)
         run_data['response_time'].append(comparison_resp.rt if not isinstance(comparison_resp.rt, list) else 'n/a')
         run_data['operation'].append(operation)
         run_data['feedback_type'].append(feedback)
