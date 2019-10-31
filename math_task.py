@@ -41,8 +41,8 @@ exp_info = {'participant':'',
             'session':''}
 
 OPERATOR_DICT = {'+': 'add', '-':'subtract', '/':'divide', '*':'multiply'}
-LEAD_IN_TIME = 0.5
-EQUATION_DURATION = 1.5
+LEAD_IN_TIME = 6
+EQUATION_DURATION = 2.
 COMPARISON_DURATION = 5.
 FEEDBACK_DURATION = 2.
 ISI1 = 0.5
