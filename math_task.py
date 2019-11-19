@@ -370,7 +370,7 @@ for curr_run in run_loop:
             lval_image.pos = (-0.3, 0.0)
             rval_image.pos = (0.3, 0.0)
         else:
-            raise Exception()
+            raise Exception('num_type must be either "analog" or "numeric", not {}'.format(num_type))
         op_image.setImage(r'numerals/{0}.png'.format(OPERATOR_DICT[operator]))
         comparison_image.setImage(r'numerals/{0:02d}n.png'.format(comparison))
         if solution > comparison:
