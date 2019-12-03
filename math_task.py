@@ -41,13 +41,15 @@ exp_info = {'participant':'',
             'session':''}
 
 OPERATOR_DICT = {'+': 'add', '-':'subtract', '/':'divide', '*':'multiply'}
-LEAD_IN_TIME = 6
+TOTAL_DURATION = 450.
+LEAD_IN_DURATION = 6.
 EQUATION_DURATION = 2.
-COMPARISON_DURATION = 5.
-FEEDBACK_DURATION = 2.
 ISI1 = 0.5
+COMPARISON_DURATION = 5.
 ISI2 = 0.5
+FEEDBACK_DURATION = 2.
 ITI = 0.5
+END_SCREEN_DURATION = 2.
 
 dlg = gui.DlgFromDict(dictionary=exp_info, title=exp_name)
 if not dlg.OK:
@@ -280,7 +282,7 @@ for curr_run in run_loop:
     frameN = -1
     continueRoutine = True
     routine_timer.reset()
-    routine_timer.add(LEAD_IN_TIME)
+    routine_timer.add(LEAD_IN_DURATION)
     # update component parameters for each repeat
     # keep track of which components have finished
     begin_fixComponents = [fixation_text]
@@ -301,8 +303,8 @@ for curr_run in run_loop:
             fixation_text.tStart = t
             fixation_text.frameNStart = frameN  # exact frame index
             fixation_text.setAutoDraw(True)
-        frameRemains = LEAD_IN_TIME - win.monitorFramePeriod * 0.75  # most of one frame period left
-        if fixation_text.status == STARTED and t >= LEAD_IN_TIME:
+        frameRemains = LEAD_IN_DURATION - win.monitorFramePeriod * 0.75  # most of one frame period left
+        if fixation_text.status == STARTED and t >= LEAD_IN_DURATION:
             fixation_text.setAutoDraw(False)
 
         # check if all components have finished
