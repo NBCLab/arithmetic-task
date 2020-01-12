@@ -359,8 +359,8 @@ for curr_run in run_loop:
 
         operator = [x for x in equation if not x.isdigit()][0]
         lval, rval = equation.split(operator)
-        lval_image.setImage(r'numerals/{0:02d}{1}.png'.format(int(lval), num_type[0]))
-        rval_image.setImage(r'numerals/{0:02d}{1}.png'.format(int(rval), num_type[0]))
+        lval_image.setImage(r'stimuli/numerals/{0:02d}{1}.png'.format(int(lval), num_type[0]))
+        rval_image.setImage(r'stimuli/numerals/{0:02d}{1}.png'.format(int(rval), num_type[0]))
         if num_type == 'analog':
             lval_image.size = (0.45, 0.675)
             rval_image.size = (0.45, 0.675)
@@ -373,8 +373,8 @@ for curr_run in run_loop:
             rval_image.pos = (0.3, 0.0)
         else:
             raise Exception('num_type must be either "analog" or "numeric", not {}'.format(num_type))
-        op_image.setImage(r'numerals/{0}.png'.format(OPERATOR_DICT[operator]))
-        comparison_image.setImage(r'numerals/{0:02d}n.png'.format(comparison))
+        op_image.setImage(r'stimuli/numerals/{0}.png'.format(OPERATOR_DICT[operator]))
+        comparison_image.setImage(r'stimuli/numerals/{0:02d}n.png'.format(comparison))
         if solution > comparison:
             corr_resp = 3
         elif solution == comparison:
@@ -656,13 +656,13 @@ for curr_run in run_loop:
             response_value = comparison_resp.keys
 
         if feedback == 'noninformative':
-            feedback_image.image = 'feedback/noninformative.png'
+            feedback_image.image = 'stimuli/feedback/noninformative.png'
         elif trial_status == 'correct':
-            feedback_image.image = 'feedback/positive.png'
+            feedback_image.image = 'stimuli/feedback/positive.png'
         elif trial_status == 'incorrect':
-            feedback_image.image = 'feedback/negative.png'
-        else:
-            feedback_image.image = 'feedback/negative.png'
+            feedback_image.image = 'stimuli/feedback/negative.png'
+        else:  # no response
+            feedback_image.image = 'stimuli/feedback/negative.png'
 
         t = 0
         feedback_window_clock.reset()  # clock
