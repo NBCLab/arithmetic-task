@@ -7,7 +7,7 @@ import pandas as pd
 
 TOTAL_DURATION = 450.
 LEAD_IN_DURATION = 6.
-FEEDBACK_DURATION = 2.
+FEEDBACK_DURATION = 0.5
 EQ_DUR_RANGE = (1, 3)
 COMP_DUR_RANGE = (1, 3)
 
@@ -70,11 +70,15 @@ def math_gen(n_trials=24, null_rate=0.33,
         itis = state.choice(possible_intervals, size=n_trials, replace=True)
 
         missing_time = TASK_TIME - np.sum([eq_durations.sum(), comp_durations.sum(),
+                                           fdbk_durations.sum(),
                                            isi1s.sum(), isi2s.sum(), itis[:-1].sum()])
         seed += 1
 
     # Fill in one trial's ITI with missing time for constant total time
-    itis[-1] = missing_time
+    remaining_time = TOTAL_DURATION - np.sum([LEAD_IN_DURATION, eq_durations.sum(),
+                                              comp_durations.sum(), fdbk_durations.sum(),
+                                              isi1s.sum(), isi2s.sum(), itis[:-1].sum()])
+    itis[-1] = remaining_time
 
     full_operators = operators * int(np.ceil(n_math_trials / len(operators)))
     full_num_types = num_types * int(np.ceil(n_trials / len(num_types)))
@@ -137,12 +141,12 @@ def math_gen(n_trials=24, null_rate=0.33,
         'comparison_representation': chosen_comparison_num_types,
         'feedback': chosen_feedback_types,
         'rounded_difference': difference_scores,
-        'duration': eq_durations,
+        'equation_duration': eq_durations,
+        'isi1': isi1s,
         'comparison_duration': comp_durations,
+        'isi2': isi2s,
         'feedback_duration': fdbk_durations,
         'iti': itis,
-        'isi1': isi1s,
-        'isi2': isi2s,
     }
     df = pd.DataFrame(timing_dict)
     return df, seed
@@ -173,7 +177,7 @@ def main():
             for i_run in range(1, n_runs + 1):
                 df, seed = math_gen(n_trials=n_trials, seed=seed)
                 df.to_csv('config/sub-{0}_ses-{1}_task-math_run-{2:02d}_'
-                          'config.tsv'.format(sub, ses, i_run),
+                          'config.tsv'.format(sub, ses.zfill(2), i_run),
                           sep='\t', index=False, float_format='%.1f')
 
 
