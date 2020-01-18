@@ -26,20 +26,7 @@ from numpy import (sin, cos, tan, log, log10, pi, average,
                    sqrt, std, deg2rad, rad2deg, linspace, asarray)
 from numpy.random import random, randint, normal, shuffle
 
-
-# Ensure that relative paths start from the same directory as this script
-try:
-    script_dir = os.path.dirname(os.path.abspath(__file__)).decode(sys.getfilesystemencoding())
-except AttributeError:
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-
-os.chdir(script_dir)
-
-# Store info about the experiment session
-exp_name = 'math'
-exp_info = {'participant':'',
-            'session':''}
-
+# Constants
 OPERATOR_DICT = {'+': 'add', '-':'subtract', '/':'divide', '*':'multiply'}
 TOTAL_DURATION = 450.
 LEAD_IN_DURATION = 6.
@@ -51,6 +38,20 @@ FEEDBACK_DURATION = 2.
 ITI = 0.5
 END_SCREEN_DURATION = 2.
 
+# Ensure that relative paths start from the same directory as this script
+try:
+    script_dir = os.path.dirname(os.path.abspath(__file__)).decode(sys.getfilesystemencoding())
+except AttributeError:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+os.chdir(script_dir)
+
+# Store info about the experiment session
+exp_name = 'math'
+exp_info = {'Subject': '',
+            'Session': '',
+            'BioPac': ['Yes', 'No']}
+
 dlg = gui.DlgFromDict(dictionary=exp_info, title=exp_name)
 if not dlg.OK:
     core.quit()  # user pressed cancel
@@ -59,17 +60,18 @@ exp_info['exp_name'] = exp_name
 with open('config/subject_config.json') as fr:
     config_data = json.load(fr)
 
-exp_info['participant'] = '{0:02d}'.format(int(exp_info['participant']))
-exp_info['session'] = '{0:02d}'.format(int(exp_info['session']))
-
-if exp_info['participant'] not in config_data:
-    raise ValueError('Subject ID "{0}" not in config_data'.format(exp_info['participant']))
+if exp_info['Subject'] not in config_data:
+    raise ValueError('Subject ID "{0}" not in config_data'.format(exp_info['Subject']))
 
 # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
-filename = script_dir + os.sep + u'data/%s_%s_%s_%s' % (exp_info['participant'],
-                                                        exp_info['session'],
-                                                        exp_name,
-                                                        exp_info['date'])
+base_name = 'sub-{0}_ses-{1}_task-math'.format(
+        exp_info['Subject'],
+        exp_info['Session'])
+
+# save a log file for detail verbose info
+logfile = logging.LogFile(op.join(script_dir, 'data', '{0}_events.log'.format(base_name)),
+                          level=logging.EXP)
+logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a file
 
 # An ExperimentHandler isn't essential but helps with data saving
 curr_exp = data.ExperimentHandler(name=exp_name, version='',
@@ -77,9 +79,6 @@ curr_exp = data.ExperimentHandler(name=exp_name, version='',
                                   originPath=None,
                                   savePickle=True, saveWideText=True,
                                   dataFileName=filename)
-# save a log file for detail verbose info
-log_file = logging.LogFile(filename + '.log', level=logging.EXP)
-logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a file
 
 END_EXP_FLAG = False  # flag for 'escape' or other condition => quit the exp
 
@@ -101,13 +100,13 @@ else:
 
 # Initialize components for Routine "instructions"
 instructions_clock = core.Clock()
-instruction_text = \
-' You will be shown a series of formulas, \
-\nyou must determine if the result is less than, equal to, greater than, \
-\nthe value that follows \
-\n      1 - Less Than  \
-\n      2 - Equal to   \
-\n      3 - Greater Than'
+instruction_text = """\
+You will be shown a series of formulae and individual numbers,
+you must determine if the result is less than, equal to, or greater than
+the value that follows:
+      1 - Less Than
+      2 - Equal to
+      3 - Greater Than"""
 instruction_text_box = visual.TextStim(win=win, name='instruction_text_box',
                                        text=instruction_text,
                                        font=u'Arial',
@@ -120,25 +119,28 @@ instruction_text_box = visual.TextStim(win=win, name='instruction_text_box',
 equation_window_clock = core.Clock()
 lval_image = visual.ImageStim(win=win, name='lval_image',
                               image=None,
-                              size=(0.3, 0.45),
                               ori=0, pos=(-.3, 0),
                               color=[1, 1, 1],
                               colorSpace='rgb',
                               opacity=1, depth=-1.0, interpolate=True)
 op_image = visual.ImageStim(win=win, name='op_image',
                             image=None,
-                            size=(0.25, 0.375),
                             ori=0, pos=(0, 0),
                             color=[1, 1, 1],
                             colorSpace='rgb',
                             opacity=1, depth=-1.0, interpolate=True)
 rval_image = visual.ImageStim(win=win, name='rval_image',
                               image=None,
-                              size=(0.3, 0.45),
                               ori=0, pos=(.3, 0),
                               color=[1, 1, 1],
                               colorSpace='rgb',
                               opacity=1, depth=-1.0, interpolate=True)
+eq_image = visual.ImageStim(win=win, name='eq_image',
+                            image=None,
+                            ori=0, pos=(0, 0),
+                            color=[1, 1, 1],
+                            colorSpace='rgb',
+                            opacity=1, depth=-1.0, interpolate=True)
 feedback_image = visual.ImageStim(win=win, name='feedback_image',
                                   image=None,
                                   size=(0.25, 0.375),
@@ -161,7 +163,6 @@ fixation_text = visual.TextStim(win=win, name='operator_text',
 comparison_window_clock = core.Clock()
 comparison_image = visual.ImageStim(win=win, name='r3_image',
                                     image=None,
-                                    size=(0.25, 0.375),
                                     ori=0, pos=(0, 0),
                                     color=[1, 1, 1],
                                     colorSpace='rgb',
@@ -179,7 +180,7 @@ post_feedback_interval_clock = core.Clock()
 # Create some handy timers
 global_clock = core.Clock()  # to track the time since experiment started
 routine_timer = core.CountdownTimer()  # to track time remaining of each (non-slip) routine
-n_runs = len(config_data[exp_info['participant']][exp_info['session']])
+n_runs = len(config_data[exp_info['Subject']][exp_info['Session']])
 # set up handler to look after randomisation of conditions etc
 run_loop = data.TrialHandler(nReps=n_runs, method='random',
                              extraInfo=exp_info, originPath=-1,
@@ -194,15 +195,17 @@ for curr_run in run_loop:
     run_data = {'onset':[], 'duration':[], 'trial_type':[],
                 'equation':[], 'feedback_type':[], 'comparison':[],
                 'response_time':[], 'accuracy':[], 'response': [],
-                'stimfile_operator': [], 'stimfile_feedback': [],
-                'stimfile_left': [], 'stimfile_right': [],
+                'stim_file_operator': [], 'stim_file_feedback': [],
+                'stim_file_left': [], 'stim_file_right': [],
+                'stim_file_comparison': [],
                 'comparison_onset': [], 'comparison_duration': [],
-                'feedback_onset': [], 'feedback_duration': []}
+                'feedback_onset': [], 'feedback_duration': [],
+                'equation_representation': [], 'comparison_representation': []}
     currentLoop = run_loop
     # abbreviate parameter names if possible (e.g. rgb = curr_run.rgb)
     run_label = run_loop.thisN + 1
     out_file = 'data/sub-{0}_ses-{1}_task-math_run-{2:02d}.tsv'.format(
-        exp_info['participant'], exp_info['session'], run_label)
+        exp_info['Subject'], exp_info['Session'], run_label)
     # ------Prepare to start Routine "instructions"-------
     t = 0
     instructions_clock.reset()  # clock
@@ -333,7 +336,7 @@ for curr_run in run_loop:
 
     # the Routine "instructions" was not non-slip safe, so reset the non-slip timer
     routine_timer.reset()
-    n_trials = len(config_data[exp_info['participant']][exp_info['session']][str(run_label)])
+    n_trials = len(config_data[exp_info['Subject']][exp_info['Session']][str(run_label)])
 
     # set up handler to look after randomisation of conditions etc
     trial_loop = data.TrialHandler(nReps=n_trials, method='random',
@@ -349,33 +352,65 @@ for curr_run in run_loop:
         currentLoop = trial_loop
         trial_label = trial_loop.thisN
 
-        trial_config = config_data[exp_info['participant']][exp_info['session']][str(run_label)][trial_label]
+        trial_config = config_data[exp_info['Subject']][exp_info['Session']][str(run_label)][trial_label]
+        trial_type = trial_config['trial_type']
         equation = trial_config['equation']
-        feedback = trial_config['feedback']
-        num_type = trial_config['representation']
+        feedback_type = trial_config['feedback']
+        num_type_eq = trial_config['equation_representation']
+        num_type_comp = trial_config['comparison_representation']
         comparison = int(trial_config['comparison'])
         rounded_difference = int(trial_config['rounded_difference'])
         solution = trial_config['solution']
 
-        operator = [x for x in equation if not x.isdigit()][0]
-        lval, rval = equation.split(operator)
-        lval_image.setImage(r'stimuli/numerals/{0:02d}{1}.png'.format(int(lval), num_type[0]))
-        rval_image.setImage(r'stimuli/numerals/{0:02d}{1}.png'.format(int(rval), num_type[0]))
-        if num_type == 'analog':
-            lval_image.size = (0.45, 0.675)
-            rval_image.size = (0.45, 0.675)
-            lval_image.pos = (-0.45, 0.0)
-            rval_image.pos = (0.45, 0.0)
-        elif num_type == 'numeric':
-            lval_image.size = (0.3, 0.45)
-            rval_image.size = (0.3, 0.45)
-            lval_image.pos = (-0.3, 0.0)
-            rval_image.pos = (0.3, 0.0)
-        else:
-            raise Exception('num_type must be either "analog" or "numeric", not {}'.format(num_type))
+        if trial_type == 'math':
+            operator = [x for x in equation if not x.isdigit()][0]
+            lval, rval = equation.split(operator)
+            lval_image.setImage(r'stimuli/numerals/{0:02d}_{1}.png'.format(int(lval), num_type_eq[0]))
+            rval_image.setImage(r'stimuli/numerals/{0:02d}_{1}.png'.format(int(rval), num_type_eq[0]))
+            if num_type_eq == 'numeric':
+                img_ratio = lval_image.size[0] / lval_image.size[1]
+                lval_image.size = [0.45 * img_ratio, 0.45]
+                img_ratio = rval_image.size[0] / rval_image.size[1]
+                rval_image.size = [0.45 * img_ratio, 0.45]
+                lval_image.pos = (-0.3, 0.0)
+                rval_image.pos = (0.3, 0.0)
+            elif num_type_eq == 'word':
+                img_ratio = lval_image.size[0] / lval_image.size[1]
+                lval_image.size = [0.45 * img_ratio, 0.45]
+                img_ratio = rval_image.size[0] / rval_image.size[1]
+                rval_image.size = [0.45 * img_ratio, 0.45]
+                lval_image.pos = (0.0, 0.4)
+                rval_image.pos = (0.0, -0.4)
+            elif num_type_eq == 'analog':  # unused
+                lval_image.size = (0.45, 0.675)
+                rval_image.size = (0.45, 0.675)
+                lval_image.pos = (-0.45, 0.0)
+                rval_image.pos = (0.45, 0.0)
+            else:
+                raise Exception('num_type_eq must be "analog", "numeric", or "word", not {}'.format(num_type_eq))
 
-        op_image.setImage(r'stimuli/numerals/{0}.png'.format(OPERATOR_DICT[operator]))
-        comparison_image.setImage(r'stimuli/numerals/{0:02d}n.png'.format(comparison))
+            op_image.setImage(r'stimuli/numerals/{0}_{1}.png'.format(OPERATOR_DICT[operator], num_type_eq[0]))
+            img_ratio = op_image.size[0] / op_image.size[1]
+            op_image.size = [0.45 * img_ratio, 0.45]
+        else:  # null trials- just memorize the number
+            solution = int(equation)
+            eq_image.setImage(r'stimuli/numerals/{0:02d}_{1}.png'.format(solution, num_type_eq[0]))
+            img_ratio = eq_image.size[0] / eq_image.size[1]
+            eq_image.size = [0.45 * img_ratio, 0.45]
+            eq_image.pos = (0.0, 0.0)
+
+        comparison_image.setImage(r'stimuli/numerals/{0:02d}_{1}.png'.format(comparison, num_type_comp[0]))
+        img_ratio = comparison_image.size[0] / comparison_image.size[1]
+        print('START')
+        print(comparison_image.image)
+        print(comparison_image.size[0])
+        print(comparison_image.size[1])
+        print(img_ratio)
+        print(0.45 * img_ratio)
+        print('DONE')
+        comparison_image.size = [0.45, 0.45 * img_ratio]
+        comparison_image.pos = (0.0, 0.0)
+
         if solution > comparison:
             corr_resp = 3
         elif solution == comparison:
@@ -404,30 +439,44 @@ for curr_run in run_loop:
             frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
             # update/draw components on each frame
 
-            # *lval_image* updates
-            if t >= 0.0 and lval_image.status == NOT_STARTED:
-                equation_onset_time = global_clock.getTime()
-                # keep track of start time/frame for later
-                lval_image.tStart = t
-                lval_image.frameNStart = frameN  # exact frame index
-                lval_image.setAutoDraw(True)
-                # keep track of start time/frame for later
-                op_image.tStart = t
-                op_image.frameNStart = frameN  # exact frame index
-                op_image.setAutoDraw(True)
-                # keep track of start time/frame for later
-                rval_image.tStart = t
-                rval_image.frameNStart = frameN  # exact frame index
-                rval_image.setAutoDraw(True)
+            if trial_type == 'math':
+                # *lval_image* updates
+                if t >= 0.0 and lval_image.status == NOT_STARTED:
+                    equation_onset_time = global_clock.getTime()
+                    # keep track of start time/frame for later
+                    lval_image.tStart = t
+                    lval_image.frameNStart = frameN  # exact frame index
+                    lval_image.setAutoDraw(True)
+                    # keep track of start time/frame for later
+                    op_image.tStart = t
+                    op_image.frameNStart = frameN  # exact frame index
+                    op_image.setAutoDraw(True)
+                    # keep track of start time/frame for later
+                    rval_image.tStart = t
+                    rval_image.frameNStart = frameN  # exact frame index
+                    rval_image.setAutoDraw(True)
 
-            frameRemains = EQUATION_DURATION - win.monitorFramePeriod * 0.75  # most of one frame period left
-            if lval_image.status == STARTED and t >= frameRemains:
-                lval_image.setAutoDraw(False)
-                op_image.setAutoDraw(False)
-                rval_image.setAutoDraw(False)
+                frameRemains = EQUATION_DURATION - win.monitorFramePeriod * 0.75  # most of one frame period left
+                if lval_image.status == STARTED and t >= frameRemains:
+                    lval_image.setAutoDraw(False)
+                    op_image.setAutoDraw(False)
+                    rval_image.setAutoDraw(False)
+            else:
+                # *eq_image* updates
+                if t >= 0.0 and eq_image.status == NOT_STARTED:
+                    equation_onset_time = global_clock.getTime()
+                    # keep track of start time/frame for later
+                    eq_image.tStart = t
+                    eq_image.frameNStart = frameN  # exact frame index
+                    eq_image.setAutoDraw(True)
+
+                frameRemains = EQUATION_DURATION - win.monitorFramePeriod * 0.75  # most of one frame period left
+                if eq_image.status == STARTED and t >= frameRemains:
+                    eq_image.setAutoDraw(False)
 
             # check if all components have finished
             if not CONTINUE_ROUTINE_FLAG:  # a component has requested a forced-end of Routine
+                print('Run: {}'.format(eq_image.size))
                 break
             CONTINUE_ROUTINE_FLAG = False  #At least one component still running
             for thisComponent in equation_windowComponents:
@@ -656,7 +705,7 @@ for curr_run in run_loop:
             trial_status = 'incorrect'
             response_value = comparison_resp.keys
 
-        if feedback == 'noninformative':
+        if feedback_type == 'noninformative':
             feedback_image.image = 'stimuli/feedback/noninformative.png'
         elif trial_status == 'correct':
             feedback_image.image = 'stimuli/feedback/positive.png'
@@ -721,21 +770,24 @@ for curr_run in run_loop:
         routine_timer.reset()
         run_data['onset'].append(equation_onset_time)
         run_data['duration'].append(equation_duration)
-        run_data['trial_type'].append(num_type)
-        run_data['response_time'].append(comparison_resp.rt if not isinstance(comparison_resp.rt, list) else 'n/a')
-        run_data['equation'].append(equation)
-        run_data['feedback_type'].append(feedback)
-        run_data['comparison'].append(comparison)
-        run_data['accuracy'].append(trial_status)
-        run_data['response'].append(response_value)
-        run_data['stimfile_left'].append(lval_image.image)
-        run_data['stimfile_right'].append(rval_image.image)
-        run_data['stimfile_operator'].append(op_image.image)
-        run_data['stimfile_feedback'].append(feedback_image.image)
+        run_data['trial_type'].append(trial_type)
         run_data['comparison_onset'].append(comparison_onset_time)
         run_data['comparison_duration'].append(comparison_duration)
         run_data['feedback_onset'].append(feedback_onset_time)
         run_data['feedback_duration'].append(feedback_duration)
+        run_data['equation_representation'].append(num_type_eq)
+        run_data['comparison_representation'].append(num_type_comp)
+        run_data['response'].append(response_value)
+        run_data['accuracy'].append(trial_status)
+        run_data['response_time'].append(comparison_resp.rt if not isinstance(comparison_resp.rt, list) else 'n/a')
+        run_data['equation'].append(equation)
+        run_data['comparison'].append(comparison)
+        run_data['feedback_type'].append(feedback_type)
+        run_data['stim_file_left'].append(lval_image.image)
+        run_data['stim_file_right'].append(rval_image.image)
+        run_data['stim_file_operator'].append(op_image.image)
+        run_data['stim_file_comparison'].append(comparison_image.image)
+        run_data['stim_file_feedback'].append(feedback_image.image)
 
         # ------Prepare to start Routine "post_feedback_interval"-------
         t = 0
