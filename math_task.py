@@ -925,9 +925,6 @@ if __name__ == '__main__':
     curr_exp.saveAsPickle(filename)
     logging.flush()
 
-    duration = datetime.now() - startTime
-    print('Total duration of task: {}'.format(duration))
-
     # make sure everything is closed down
     curr_exp.abort()  # or data files will save again on exit
     window.close()
