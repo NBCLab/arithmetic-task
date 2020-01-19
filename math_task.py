@@ -9,39 +9,26 @@ If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy.
         Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008
 """
-#pylint: disable=E0401,E0611,C0103,W0611
 from __future__ import absolute_import, division
-import os  # handy system and path functions
-import os.path as op
 import sys  # to get file system encoding
-import json
 import time
-import itertools as it
+import serial
+import os.path as op
 from glob import glob
 from datetime import datetime
-import pandas as pd
-from psychopy import locale_setup, sound, gui, visual, core, data, event, logging
-from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
-                                STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
+
 import numpy as np  # whole numpy lib is available, prepend 'np.'
-from numpy import (sin, cos, tan, log, log10, pi, average,
-                   sqrt, std, deg2rad, rad2deg, linspace, asarray)
-from numpy.random import random, randint, normal, shuffle
+import pandas as pd
+
+from psychopy import gui, visual, core, data, event, logging
+from psychopy.constants import STARTED, STOPPED
 
 # Constants
-OPERATOR_DICT = {'+': 'add', '-':'subtract', '/':'divide', '*':'multiply'}
-TOTAL_DURATION = 450.
+OPERATOR_DICT = {'+': 'add', '-': 'subtract', '/': 'divide', '*': 'multiply'}
+RUN_DURATION = 450.
 LEAD_IN_DURATION = 6.
 END_SCREEN_DURATION = 2.
 N_RUNS = 2
-
-_INSTRUCTIONS = """\
-You will be shown a series of formulae and individual numbers,
-you must determine if the result is less than, equal to, or greater than
-the value that follows:
-      1 - Less Than
-      2 - Equal to
-      3 - Greater Than"""
 
 
 def close_on_esc(win):
@@ -102,9 +89,9 @@ if __name__ == '__main__':
     all_config_files = [op.basename(acf) for acf in all_config_files]
     all_subjects = sorted(list(set([acf.split('_')[0].split('-')[1] for acf in all_config_files])))
     all_sessions = sorted(list(set([acf.split('_')[1].split('-')[1] for acf in all_config_files])))
-    exp_info = {'Subject': all_subjects,
+    exp_info = {'Subject': all_subjects[::-1],
                 'Session': all_sessions,
-                'BioPac': ['Yes', 'No']}
+                'BioPac': ['No', 'Yes']}
 
     dlg = gui.DlgFromDict(
         exp_info,
@@ -118,41 +105,41 @@ if __name__ == '__main__':
     if not dlg.OK:
         core.quit()  # user pressed cancel
 
-    exp_info['date'] = data.getDateStr()  # add a simple timestamp
-    exp_info['exp_name'] = 'math'
-
     if exp_info['BioPac'] == 'Yes':
         ser = serial.Serial('COM2', 115200)
 
     # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
     base_name = 'sub-{0}_ses-{1}_task-math'.format(exp_info['Subject'], exp_info['Session'])
 
+    # Check for existence of config files
     for i_run in range(1, N_RUNS+1):
         config_file = op.join(script_dir, 'config',
                               '{0}_run-{1:02d}_config.tsv'.format(base_name, i_run))
         if not op.isfile(config_file):
             raise Exception('Config file not found: {}'.format(config_file))
 
+        outfile = op.join(script_dir, 'data',
+                          '{0}_run-{1:02d}_events.tsv'.format(base_name, i_run))
+        if op.exists(outfile) and 'Pilot' not in outfile:
+            raise ValueError('Output file already exists.')
+
     # save a log file for detail verbose info
     filename = op.join(script_dir, 'data/{0}_events'.format(base_name))
     logfile = logging.LogFile(filename+'.log', level=logging.EXP)
     logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a file
-
-    END_EXP_FLAG = False  # flag for 'escape' or other condition => quit the exp
-
-    # store frame rate of monitor if we can measure it
-    exp_info['frame_rate'] = window.getActualFrameRate()
-    if not exp_info['frame_rate']:
-        frame_duration = 1.0 / round(exp_info['frame_rate'])
-    else:
-        frame_duration = 1.0 / 60.0  # could not measure, so guess
 
     # Initialize stimuli
     # ------------------
     instruction_text_box = visual.TextStim(
         win=window,
         name='instruction_text_box',
-        text=_INSTRUCTIONS,
+        text="""\
+You will be shown a series of formulae and individual numbers,
+you must determine if the result is less than, equal to, or greater than
+the value that follows:
+      1 - Less Than
+      2 - Equal to
+      3 - Greater Than""",
         font=u'Arial',
         height=0.1,
         pos=(0, 0),
@@ -243,16 +230,24 @@ if __name__ == '__main__':
         opacity=1,
         depth=0.0)
     end_screen = visual.TextStim(
-        window,
-        'The task is now complete.',
+        win=window,
         name='end_screen',
-        color='white')
+        text='The task is now complete.',
+        font=u'Arial',
+        pos=(0, 0),
+        height=0.14,
+        wrapWidth=None,
+        ori=0,
+        color='white',
+        colorSpace='rgb',
+        opacity=1,
+        depth=0.0)
 
     # Scanner runtime
     # ---------------
     global_clock = core.Clock()  # to track the time since experiment started
-    routine_timer = core.CountdownTimer()  # to track time remaining of each (non-slip) routine
-    trial_clock = core.Clock()  # to track duration of each stage in each trial
+    run_clock = core.Clock()  # to track time since each run starts (post scanner pulse)
+    stage_clock = core.Clock()  # to track duration of each stage in each trial
 
     # set up handler to look after randomisation of conditions etc
     run_loop = data.TrialHandler(nReps=N_RUNS, method='random',
@@ -262,22 +257,24 @@ if __name__ == '__main__':
     curr_run = run_loop.trialList[0]  # so we can initialise stimuli with some values
 
     for curr_run in run_loop:
-        run_data = {'onset':[], 'duration':[], 'trial_type':[],
-                    'equation':[], 'feedback_type':[], 'comparison':[],
-                    'response_time':[], 'accuracy':[], 'response': [],
-                    'stim_file_operator': [], 'stim_file_feedback': [],
-                    'stim_file_left': [], 'stim_file_right': [],
-                    'stim_file_comparison': [],
-                    'comparison_onset': [], 'comparison_duration': [],
-                    'feedback_onset': [], 'feedback_duration': [],
-                    'equation_representation': [], 'comparison_representation': []}
+        COLUMNS = [
+            'onset', 'duration', 'trial_type',
+            'comparison_onset', 'comparison_duration',
+            'feedback_onset', 'feedback_duration',
+            'equation', 'comparison', 'solution', 'rounded_difference',
+            'feedback_type',
+            'response', 'response_time', 'accuracy',
+            'stim_file_left', 'stim_file_operator', 'stim_file_right',
+            'stim_file_comparison', 'stim_file_feedback',
+            'equation_representation', 'comparison_representation']
+        run_data = {c: [] for c in COLUMNS}
         currentLoop = run_loop
         run_label = run_loop.thisN + 1
         config_file = op.join(script_dir, 'config',
                               '{0}_run-{1:02d}_config.tsv'.format(base_name, run_label))
         config_df = pd.read_table(config_file)
         outfile = op.join(script_dir, 'data',
-                           '{0}_run-{1:02d}_events.tsv'.format(base_name, run_label))
+                          '{0}_run-{1:02d}_events.tsv'.format(base_name, run_label))
 
         # Reset BioPac
         if exp_info['BioPac'] == 'Yes':
@@ -294,15 +291,13 @@ if __name__ == '__main__':
         if exp_info['BioPac'] == 'Yes':
             ser.write('FF')
 
+        run_clock.reset()
         startTime = datetime.now()
 
         # Beginning fixation
-        trial_clock.reset()
+        stage_clock.reset()
         draw(win=window, stim=fixation_text, duration=LEAD_IN_DURATION,
-             clock=trial_clock)
-
-        # the Routine "instructions" was not non-slip safe, so reset the non-slip timer
-        routine_timer.reset()
+             clock=stage_clock)
 
         # set up handler to look after randomisation of conditions etc
         trial_loop = data.TrialHandler(nReps=config_df.shape[0], method='random',
@@ -363,6 +358,9 @@ if __name__ == '__main__':
                     'stimuli/numerals/{0}_{1}.png'.format(OPERATOR_DICT[operator], num_type_eq[0])))
                 img_ratio = op_image.size[0] / op_image.size[1]
                 op_image.size = [0.45 * img_ratio, 0.45]
+                run_data['stim_file_left'].append(lval_image.image.split('/stimuli/')[1])
+                run_data['stim_file_right'].append(rval_image.image.split('/stimuli/')[1])
+                run_data['stim_file_operator'].append(op_image.image.split('/stimuli/')[1])
             else:  # null trials- just memorize the number
                 solution = int(equation)
                 eq_image.setImage(op.join(
@@ -371,63 +369,50 @@ if __name__ == '__main__':
                 img_ratio = eq_image.size[0] / eq_image.size[1]
                 eq_image.size = [0.45 * img_ratio, 0.45]
                 eq_image.pos = (0.0, 0.0)
+                run_data['stim_file_left'].append(eq_image.image.split('/stimuli/')[1])
+                run_data['stim_file_right'].append('n/a')
+                run_data['stim_file_operator'].append('n/a')
 
             comparison_image.setImage(op.join(
                 script_dir,
                 'stimuli/numerals/{0:02d}_{1}.png'.format(comparison, num_type_comp[0])))
             img_ratio = comparison_image.size[0] / comparison_image.size[1]
-            #print('START')
-            #print(comparison_image.image)
-            #print(comparison_image.size[0])
-            #print(comparison_image.size[1])
-            #print(img_ratio)
-            #print(0.45 * img_ratio)
-            #print('DONE')
             comparison_image.size = [0.45, 0.45 * img_ratio]
             comparison_image.pos = (0.0, 0.0)
 
             # Equation
-            trial_clock.reset()
-            equation_onset_time = global_clock.getTime()
+            stage_clock.reset()
+            equation_onset_time = run_clock.getTime()
             if trial_type == 'math':
                 draw(win=window, stim=[lval_image, op_image, rval_image],
                      duration=config_df.loc[trial_num, 'equation_duration'],
-                     clock=trial_clock)
+                     clock=stage_clock)
             else:
                 draw(win=window, stim=eq_image,
                      duration=config_df.loc[trial_num, 'equation_duration'],
-                     clock=trial_clock)
+                     clock=stage_clock)
 
-            equation_duration = trial_clock.getTime()
-
-            # the Routine "equation_window" was not non-slip safe, so reset the non-slip timer
-            routine_timer.reset()
+            equation_duration = stage_clock.getTime()
 
             # ISI1
-            trial_clock.reset()
+            stage_clock.reset()
             isi1_keys, _ = draw(win=window, stim=fixation_text,
                                 duration=config_df.loc[trial_num, 'isi1'],
-                                clock=trial_clock)
-
-            routine_timer.reset()
+                                clock=stage_clock)
 
             # Comparison
-            trial_clock.reset()
-            comparison_onset_time = global_clock.getTime()
+            stage_clock.reset()
+            comparison_onset_time = run_clock.getTime()
             task_keys, _ = draw(win=window, stim=comparison_image,
                                 duration=config_df.loc[trial_num, 'comparison_duration'],
-                                clock=trial_clock)
-            comparison_duration = trial_clock.getTime()
-
-            routine_timer.reset()
+                                clock=stage_clock)
+            comparison_duration = stage_clock.getTime()
 
             # ISI2
-            trial_clock.reset()
+            stage_clock.reset()
             isi2_keys, _ = draw(win=window, stim=fixation_text,
                                 duration=config_df.loc[trial_num, 'isi2'],
-                                clock=trial_clock)
-
-            routine_timer.reset()
+                                clock=stage_clock)
 
             # determine response
             if task_keys and isi2_keys:
@@ -462,26 +447,23 @@ if __name__ == '__main__':
 
             # determine feedback
             if feedback_type == 'noninformative':
-                feedback_image.image = 'stimuli/feedback/noninformative.png'
+                feedback_image.image = op.join(script_dir, 'stimuli/feedback/noninformative.png')
             elif trial_status == 'correct':
-                feedback_image.image = 'stimuli/feedback/positive.png'
+                feedback_image.image = op.join(script_dir, 'stimuli/feedback/positive.png')
             elif trial_status == 'incorrect':
-                feedback_image.image = 'stimuli/feedback/negative.png'
+                feedback_image.image = op.join(script_dir, 'stimuli/feedback/negative.png')
             else:  # no response
-                feedback_image.image = 'stimuli/feedback/negative.png'
+                feedback_image.image = op.join(script_dir, 'stimuli/feedback/negative.png')
 
             # feedback presentation
-            trial_clock.reset()
-            feedback_onset_time = global_clock.getTime()
+            stage_clock.reset()
+            feedback_onset_time = run_clock.getTime()
             draw(win=window, stim=feedback_image,
                  duration=config_df.loc[trial_num, 'feedback_duration'],
-                 clock=trial_clock)
-            feedback_duration = trial_clock.getTime()
+                 clock=stage_clock)
+            feedback_duration = stage_clock.getTime()
 
-            routine_timer.reset()
-
-            # the Routine "feedback_window" was not non-slip safe, so reset the non-slip timer
-            routine_timer.reset()
+            # Compile new row of output file
             run_data['onset'].append(equation_onset_time)
             run_data['duration'].append(equation_duration)
             run_data['trial_type'].append(trial_type)
@@ -494,20 +476,26 @@ if __name__ == '__main__':
             run_data['accuracy'].append(trial_status)
             run_data['equation'].append(equation)
             run_data['comparison'].append(comparison)
+            run_data['solution'].append(solution)
+            run_data['rounded_difference'].append(rounded_difference)
             run_data['feedback_type'].append(feedback_type)
-            run_data['stim_file_left'].append(lval_image.image)
-            run_data['stim_file_right'].append(rval_image.image)
-            run_data['stim_file_operator'].append(op_image.image)
-            run_data['stim_file_comparison'].append(comparison_image.image)
-            run_data['stim_file_feedback'].append(feedback_image.image)
+            run_data['stim_file_comparison'].append(comparison_image.image.split('/stimuli/')[1])
+            run_data['stim_file_feedback'].append(feedback_image.image.split('/stimuli/')[1])
+
+            # Save updated output file
+            run_frame = pd.DataFrame(run_data)
+            run_frame.to_csv(outfile, sep='\t', line_terminator='\n', na_rep='n/a', index=False)
 
             # ITI
-            trial_clock.reset()
-            draw(win=window, stim=fixation_text,
-                 duration=config_df.loc[trial_num, 'iti'],
-                 clock=trial_clock)
+            stage_clock.reset()
+            # For last trial, update fixation
+            if trial_num == config_df.index.values[-1]:
+                iti_duration = RUN_DURATION - run_clock.getTime()
+            else:
+                iti_duration = config_df.loc[trial_num, 'iti']
 
-            routine_timer.reset()
+            draw(win=window, stim=fixation_text, duration=iti_duration,
+                 clock=stage_clock)
 
         # end trial_loop
         run_frame = pd.DataFrame(run_data)
@@ -525,8 +513,8 @@ if __name__ == '__main__':
         ser.close()
 
     # Scanner is off for this
-    trial_clock.reset()
-    draw(win=window, stim=end_screen, duration=2, clock=trial_clock)
+    stage_clock.reset()
+    draw(win=window, stim=end_screen, duration=2, clock=stage_clock)
 
     logging.flush()
 
