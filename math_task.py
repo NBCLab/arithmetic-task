@@ -33,6 +33,22 @@ END_SCREEN_DURATION = 2
 N_RUNS = 2
 
 
+def set_word_size(img):
+    # det from orig height 2row / orig height 1row
+    const = 1.764505119453925
+
+    # desired 1row height
+    height_1row = 0.225
+    height_2rows = height_1row * const
+    width, height = img.size
+    if height > 1:  # det by stim gen procedure
+        new_height = height_2rows
+    else:
+        new_height = height_1row
+    new_shape = (new_height * (width / height), new_height)
+    return new_shape
+
+
 def close_on_esc(win):
     """
     Closes window if escape is pressed
@@ -162,7 +178,6 @@ the value that follows:
         name='equation_first_term',
         image=None,
         ori=0,
-        pos=(-.3, 0),
         color=[1, 1, 1],
         colorSpace='rgb',
         opacity=1,
@@ -184,7 +199,6 @@ the value that follows:
         name='equation_second_term',
         image=None,
         ori=0,
-        pos=(.3, 0),
         color=[1, 1, 1],
         colorSpace='rgb',
         opacity=1,
@@ -337,20 +351,24 @@ the value that follows:
                 rval_image.setImage(op.join(
                     script_dir,
                     'stimuli/numerals/{0:02d}_{1}.png'.format(int(rval), num_type_eq[0])))
+                op_image.setImage(op.join(
+                    script_dir,
+                    'stimuli/numerals/{0}_{1}.png'.format(OPERATOR_DICT[operator], num_type_eq[0])))
+                op_image.setSize(set_word_size(op_image))
                 if num_type_eq == 'numeric':
-                    img_ratio = lval_image.size[0] / lval_image.size[1]
-                    lval_image.size = [0.45 * img_ratio, 0.45]
-                    img_ratio = rval_image.size[0] / rval_image.size[1]
-                    rval_image.size = [0.45 * img_ratio, 0.45]
-                    lval_image.pos = (-0.3, 0.0)
-                    rval_image.pos = (0.3, 0.0)
+                    lval_image.setSize(set_word_size(lval_image))
+                    rval_image.setSize(set_word_size(rval_image))
+                    lval_pos = (lval_image.size[0] / 2.) + (op_image.size[0] / 2.)
+                    rval_pos = -1 * ((rval_image.size[0] / 2.) + (op_image.size[0] / 2.))
+                    lval_image.pos = (lval_pos, 0.0)
+                    rval_image.pos = (rval_pos, 0.0)
                 elif num_type_eq == 'word':
-                    img_ratio = lval_image.size[0] / lval_image.size[1]
-                    lval_image.size = [0.45 * img_ratio, 0.45]
-                    img_ratio = rval_image.size[0] / rval_image.size[1]
-                    rval_image.size = [0.45 * img_ratio, 0.45]
-                    lval_image.pos = (0.0, 0.4)
-                    rval_image.pos = (0.0, -0.4)
+                    lval_image.setSize(set_word_size(lval_image))
+                    rval_image.setSize(set_word_size(rval_image))
+                    lval_pos = (lval_image.size[1] / 2.) + (op_image.size[1] / 2.)
+                    rval_pos = -1 * ((rval_image.size[1] / 2.) + (op_image.size[1] / 2.))
+                    lval_image.pos = (0.0, lval_pos)
+                    rval_image.pos = (0.0, rval_pos)
                 elif num_type_eq == 'analog':  # unused
                     lval_image.size = (0.45, 0.675)
                     rval_image.size = (0.45, 0.675)
@@ -360,11 +378,6 @@ the value that follows:
                     raise Exception('num_type_eq must be "analog", "numeric", '
                                     'or "word", not {}'.format(num_type_eq))
 
-                op_image.setImage(op.join(
-                    script_dir,
-                    'stimuli/numerals/{0}_{1}.png'.format(OPERATOR_DICT[operator], num_type_eq[0])))
-                img_ratio = op_image.size[0] / op_image.size[1]
-                op_image.size = [0.45 * img_ratio, 0.45]
                 run_data['stim_file_left'].append(lval_image.image.split('/stimuli/')[1])
                 run_data['stim_file_right'].append(rval_image.image.split('/stimuli/')[1])
                 run_data['stim_file_operator'].append(op_image.image.split('/stimuli/')[1])
@@ -373,9 +386,7 @@ the value that follows:
                 eq_image.setImage(op.join(
                     script_dir,
                     'stimuli/numerals/{0:02d}_{1}.png'.format(solution, num_type_eq[0])))
-                img_ratio = eq_image.size[0] / eq_image.size[1]
-                eq_image.size = [0.45 * img_ratio, 0.45]
-                eq_image.pos = (0.0, 0.0)
+                eq_image.setSize(set_word_size(eq_image))
                 run_data['stim_file_left'].append(eq_image.image.split('/stimuli/')[1])
                 run_data['stim_file_right'].append('n/a')
                 run_data['stim_file_operator'].append('n/a')
@@ -383,9 +394,7 @@ the value that follows:
             comparison_image.setImage(op.join(
                 script_dir,
                 'stimuli/numerals/{0:02d}_{1}.png'.format(comparison, num_type_comp[0])))
-            img_ratio = comparison_image.size[0] / comparison_image.size[1]
-            comparison_image.size = [0.45, 0.45 * img_ratio]
-            comparison_image.pos = (0.0, 0.0)
+            comparison_image.setSize(set_word_size(comparison_image))
 
             # Equation
             stage_clock.reset()
@@ -398,7 +407,6 @@ the value that follows:
                 draw(win=window, stim=eq_image,
                      duration=config_df.loc[trial_num, 'equation_duration'],
                      clock=stage_clock)
-
             equation_duration = stage_clock.getTime()
 
             # ISI1
@@ -503,6 +511,13 @@ the value that follows:
 
             draw(win=window, stim=fixation_text, duration=iti_duration,
                  clock=stage_clock)
+
+            # Unset stim sizes so they don't pass on to the next trial
+            lval_image.size = None
+            op_image.size = None
+            rval_image.size = None
+            eq_image.size = None
+            comparison_image.size = None
 
         # end trial_loop
         run_frame = pd.DataFrame(run_data)
