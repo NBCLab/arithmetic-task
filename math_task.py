@@ -100,10 +100,16 @@ if __name__ == '__main__':
         title='Math task',
         order=['Subject', 'Session', 'BioPac'])
     window = visual.Window(
-        # size=(800, 600), fullscr=True, monitor='testMonitor', units='norm',
-        size=(500, 400), fullscr=False, monitor='testMonitor', units='norm',
-        allowStencil=False, allowGUI=False, color='black', colorSpace='rgb',
-        blendMode='avg', useFBO=True)
+        fullscr=False,
+        size=(800, 600),
+        monitor='testMonitor',
+        units='norm',
+        allowStencil=False,
+        allowGUI=False,
+        color='black',
+        colorSpace='rgb',
+        blendMode='avg',
+        useFBO=True)
     if not dlg.OK:
         core.quit()  # user pressed cancel
 
@@ -515,6 +521,7 @@ the value that follows:
     # Scanner is off for this
     stage_clock.reset()
     draw(win=window, stim=end_screen, duration=END_SCREEN_DURATION, clock=stage_clock)
+    window.flip()
 
     logging.flush()
 
