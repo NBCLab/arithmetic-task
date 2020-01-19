@@ -9,25 +9,27 @@ If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy.
         Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008
 """
-from __future__ import absolute_import, division
-import sys  # to get file system encoding
+from __future__ import absolute_import, division, print_function
+import sys
 import time
 import serial
 import os.path as op
 from glob import glob
-from datetime import datetime
 
-import numpy as np  # whole numpy lib is available, prepend 'np.'
+import numpy as np
 import pandas as pd
 
 from psychopy import gui, visual, core, data, event, logging
 from psychopy.constants import STARTED, STOPPED
 
 # Constants
-OPERATOR_DICT = {'+': 'add', '-': 'subtract', '/': 'divide', '*': 'multiply'}
-RUN_DURATION = 450.
-LEAD_IN_DURATION = 6.
-END_SCREEN_DURATION = 2.
+OPERATOR_DICT = {'+': 'add',
+                 '-': 'subtract',
+                 '/': 'divide',
+                 '*': 'multiply'}
+RUN_DURATION = 450
+LEAD_IN_DURATION = 6
+END_SCREEN_DURATION = 2
 N_RUNS = 2
 
 
@@ -292,7 +294,6 @@ the value that follows:
             ser.write('FF')
 
         run_clock.reset()
-        startTime = datetime.now()
 
         # Beginning fixation
         stage_clock.reset()
@@ -504,8 +505,7 @@ the value that follows:
         if exp_info['BioPac'] == 'Yes':
             ser.write('00')
 
-        duration = datetime.now() - startTime
-        print('Total duration of run: {}'.format(duration))
+        print('Total duration of run: {}'.format(run_clock.getTime()))
     # end run_loop
 
     # Shut down serial port connection
@@ -514,7 +514,7 @@ the value that follows:
 
     # Scanner is off for this
     stage_clock.reset()
-    draw(win=window, stim=end_screen, duration=2, clock=stage_clock)
+    draw(win=window, stim=end_screen, duration=END_SCREEN_DURATION, clock=stage_clock)
 
     logging.flush()
 

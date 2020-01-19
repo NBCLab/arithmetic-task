@@ -5,25 +5,34 @@ from collections import Counter
 from scipy.stats import gumbel_r
 import pandas as pd
 
-TOTAL_DURATION = 450.
-LEAD_IN_DURATION = 6.
 FEEDBACK_DURATION = 0.5
 EQ_DUR_RANGE = (1, 3)
 COMP_DUR_RANGE = (1, 3)
-
-N_TRIALS = 24  # total
 INTERVAL_RANGE = (2, 8)  # max determined to minimize difference from TASK_TIME
+
+N_RUNS = 2
+N_TRIALS = 24  # total
 # General
+TOTAL_DURATION = 450.
 TASK_TIME = 438  # time for trials in task
-START_DUR = 6  # fixation before trials
-END_DUR = 6  # fixation after trials
+LEAD_IN_DURATION = 6  # fixation before trials
 
 
-def math_gen(n_trials=24, null_rate=0.33,
-             operators=['*', '+', '-', '/'],
-             num_types=['numeric', 'word'],
-             feedback_types=['informative', 'noninformative'],
-             seed=None):
+def get_hist(vals, value_range):
+    counter = Counter(vals)
+    for v in value_range:
+        if v not in counter.keys():
+            counter[v] = 0
+    x = sorted(counter.keys())
+    y = [counter[x_val] for x_val in x]
+    return x, y
+
+
+def determine_timing(n_trials=24, null_rate=0.33,
+                     operators=['*', '+', '-', '/'],
+                     num_types=['numeric', 'word'],
+                     feedback_types=['informative', 'noninformative'],
+                     seed=None):
     """
     Generate configuration files.
 
@@ -47,7 +56,7 @@ def math_gen(n_trials=24, null_rate=0.33,
     n_math_trials = n_trials - n_null_trials
 
     # Timing
-    mu = 4.
+    mu = 4  # mean of 4s
     raw_intervals = gumbel_r.rvs(size=100000, loc=mu, scale=1)
     possible_intervals = np.round(raw_intervals, 1)
     # crop to 2-8s
@@ -75,16 +84,16 @@ def math_gen(n_trials=24, null_rate=0.33,
         seed += 1
 
     # Fill in one trial's ITI with missing time for constant total time
-    remaining_time = TOTAL_DURATION - np.sum([LEAD_IN_DURATION, eq_durations.sum(),
-                                              comp_durations.sum(), fdbk_durations.sum(),
-                                              isi1s.sum(), isi2s.sum(), itis[:-1].sum()])
-    itis[-1] = remaining_time
+    itis[-1] = TOTAL_DURATION - np.sum([LEAD_IN_DURATION, eq_durations.sum(),
+                                        comp_durations.sum(), fdbk_durations.sum(),
+                                        isi1s.sum(), isi2s.sum(), itis[:-1].sum()])
 
     full_operators = operators * int(np.ceil(n_math_trials / len(operators)))
     full_num_types = num_types * int(np.ceil(n_trials / len(num_types)))
     full_feedback_types = feedback_types * int(np.ceil(n_trials / len(feedback_types)))
 
     # Get distribution of difference scores to control math difficulty
+    # We want a sort of flattened normal distribution for this
     value_range = 20
     raw_difference_scores = np.random.binomial(n=value_range, p=0.5, size=100000) - int(value_range / 2)
     x = np.arange(value_range+1, dtype=int) - int(value_range / 2)
@@ -152,30 +161,17 @@ def math_gen(n_trials=24, null_rate=0.33,
     return df, seed
 
 
-def get_hist(vals, value_range):
-    counter = Counter(vals)
-    for v in value_range:
-        if v not in counter.keys():
-            counter[v] = 0
-    x = sorted(counter.keys())
-    y = [counter[x_val] for x_val in x]
-    return x, y
-
-
 def main():
     subjects = ['Blossom', 'Bubbles', 'Buttercup', 'Pilot', '01', '02', '03']
     sessions = np.arange(1, 14, dtype=int).astype(str)  # 10
-    n_runs = 2
-    n_trials = 24
-    d = {}
     seed = 1
     for sub in subjects:
         print('Compiling subject {0}'.format(sub))
         for ses in sessions:
             print('    Compiling session {0}'.format(ses))
             print('\tUpdating seed to {0}'.format(seed))
-            for i_run in range(1, n_runs + 1):
-                df, seed = math_gen(n_trials=n_trials, seed=seed)
+            for i_run in range(1, N_RUNS + 1):
+                df, seed = determine_timing(n_trials=N_TRIALS, seed=seed)
                 df.to_csv('config/sub-{0}_ses-{1}_task-math_run-{2:02d}_'
                           'config.tsv'.format(sub, ses.zfill(2), i_run),
                           sep='\t', index=False, float_format='%.1f')
