@@ -230,7 +230,7 @@ the value that follows:
         win=window,
         name='feedback',
         image=None,
-        size=(0.25, 0.375),
+        size=None,
         ori=0,
         pos=(0, 0),
         color=[1, 1, 1],
@@ -473,6 +473,10 @@ the value that follows:
             # feedback presentation
             stage_clock.reset()
             feedback_onset_time = run_clock.getTime()
+            width, height = feedback_image.size
+            new_height = 0.6
+            new_shape = (new_height * (width / height), new_height)
+            feedback_image.setSize(new_shape)
             draw(win=window, stim=feedback_image,
                  duration=config_df.loc[trial_num, 'feedback_duration'],
                  clock=stage_clock)
