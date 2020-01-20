@@ -505,7 +505,8 @@ the value that follows:
 
             # Save updated output file
             run_frame = pd.DataFrame(run_data)
-            run_frame.to_csv(outfile, sep='\t', line_terminator='\n', na_rep='n/a', index=False)
+            run_frame.to_csv(outfile, sep='\t', line_terminator='\n',
+                             na_rep='n/a', index=False, float_format='%.2f')
 
             # ITI
             stage_clock.reset()
@@ -527,7 +528,8 @@ the value that follows:
 
         # end trial_loop
         run_frame = pd.DataFrame(run_data)
-        run_frame.to_csv(outfile, sep='\t', line_terminator='\n', na_rep='n/a', index=False)
+        run_frame.to_csv(outfile, sep='\t', line_terminator='\n', na_rep='n/a',
+                         index=False, float_format='%.2f')
 
         if exp_info['BioPac'] == 'Yes':
             ser.write('00')
