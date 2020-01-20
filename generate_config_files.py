@@ -80,13 +80,8 @@ def determine_timing(n_trials=24, null_rate=0.33,
 
         missing_time = TASK_TIME - np.sum([eq_durations.sum(), comp_durations.sum(),
                                            fdbk_durations.sum(),
-                                           isi1s.sum(), isi2s.sum(), itis[:-1].sum()])
+                                           isi1s.sum(), isi2s.sum(), itis.sum()])
         seed += 1
-
-    # Fill in one trial's ITI with missing time for constant total time
-    itis[-1] = TOTAL_DURATION - np.sum([LEAD_IN_DURATION, eq_durations.sum(),
-                                        comp_durations.sum(), fdbk_durations.sum(),
-                                        isi1s.sum(), isi2s.sum(), itis[:-1].sum()])
 
     full_operators = operators * int(np.ceil(n_math_trials / len(operators)))
     full_num_types = num_types * int(np.ceil(n_trials / len(num_types)))
@@ -162,19 +157,12 @@ def determine_timing(n_trials=24, null_rate=0.33,
 
 
 def main():
-    subjects = ['Blossom', 'Bubbles', 'Buttercup', 'Pilot', '01', '02', '03']
-    sessions = np.arange(1, 14, dtype=int).astype(str)  # 10
+    n_files = 200
     seed = 1
-    for sub in subjects:
-        print('Compiling subject {0}'.format(sub))
-        for ses in sessions:
-            print('    Compiling session {0}'.format(ses))
-            print('\tUpdating seed to {0}'.format(seed))
-            for i_run in range(1, N_RUNS + 1):
-                df, seed = determine_timing(n_trials=N_TRIALS, seed=seed)
-                df.to_csv('config/sub-{0}_ses-{1}_task-math_run-{2:02d}_'
-                          'config.tsv'.format(sub, ses.zfill(2), i_run),
-                          sep='\t', index=False, float_format='%.1f')
+    for i_file in range(1, n_files+1):
+        df, seed = determine_timing(n_trials=N_TRIALS, seed=seed)
+        df.to_csv('config/config_{0:05d}.tsv'.format(i_file),
+                  sep='\t', index=False, float_format='%.1f')
 
 
 if __name__ == '__main__':

@@ -103,12 +103,8 @@ if __name__ == '__main__':
     # Collect user input
     # ------------------
     # Remember to turn fullscr to True for the real deal.
-    all_config_files = sorted(glob(op.join(script_dir, 'config/sub*_config.tsv')))
-    all_config_files = [op.basename(acf) for acf in all_config_files]
-    all_subjects = sorted(list(set([acf.split('_')[0].split('-')[1] for acf in all_config_files])))
-    all_sessions = sorted(list(set([acf.split('_')[1].split('-')[1] for acf in all_config_files])))
-    exp_info = {'Subject': all_subjects[::-1],
-                'Session': all_sessions,
+    exp_info = {'Subject': '',
+                'Session': '',
                 'BioPac': ['No', 'Yes']}
 
     dlg = gui.DlgFromDict(
@@ -135,13 +131,10 @@ if __name__ == '__main__':
     # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
     base_name = 'sub-{0}_ses-{1}_task-math'.format(exp_info['Subject'], exp_info['Session'])
 
-    # Check for existence of config files
+    # Check for existence of output files
+    config_files = sorted(glob(op.join(script_dir, 'config/config_*.tsv')))
+    config_files = np.random.choice(config_files, size=N_RUNS, replace=False)
     for i_run in range(1, N_RUNS+1):
-        config_file = op.join(script_dir, 'config',
-                              '{0}_run-{1:02d}_config.tsv'.format(base_name, i_run))
-        if not op.isfile(config_file):
-            raise Exception('Config file not found: {}'.format(config_file))
-
         outfile = op.join(script_dir, 'data',
                           '{0}_run-{1:02d}_events.tsv'.format(base_name, i_run))
         if op.exists(outfile) and 'Pilot' not in outfile:
@@ -173,7 +166,7 @@ the value that follows:
         colorSpace='rgb',
         opacity=1,
         depth=-1.0)
-    lval_image = visual.ImageStim(
+    term1_image = visual.ImageStim(
         win=window,
         name='equation_first_term',
         image=None,
@@ -194,7 +187,7 @@ the value that follows:
         opacity=1,
         depth=-1.0,
         interpolate=True)
-    rval_image = visual.ImageStim(
+    term2_image = visual.ImageStim(
         win=window,
         name='equation_second_term',
         image=None,
@@ -286,17 +279,26 @@ the value that follows:
             'equation', 'comparison', 'solution', 'rounded_difference',
             'feedback_type',
             'response', 'response_time', 'accuracy',
-            'stim_file_left', 'stim_file_operator', 'stim_file_right',
+            'stim_file_first_term', 'stim_file_operator', 'stim_file_second_term',
             'stim_file_comparison', 'stim_file_feedback',
             'equation_representation', 'comparison_representation']
         run_data = {c: [] for c in COLUMNS}
         currentLoop = run_loop
         run_label = run_loop.thisN + 1
-        config_file = op.join(script_dir, 'config',
-                              '{0}_run-{1:02d}_config.tsv'.format(base_name, run_label))
-        config_df = pd.read_table(config_file)
+        config_df = pd.read_table(config_files[run_label - 1])
         outfile = op.join(script_dir, 'data',
                           '{0}_run-{1:02d}_events.tsv'.format(base_name, run_label))
+
+        # Shuffle configuration
+        columns_to_shuffle = [
+            ['equation', 'solution', 'comparison', 'rounded_difference'],
+            'trial_type',
+            'equation_representation', 'comparison_representation', 'feedback',
+            'equation_duration', 'isi1', 'comparison_duration', 'isi2', 'feedback_duration', 'iti'
+        ]
+        for c in columns_to_shuffle:
+            shuffle_idx = np.random.permutation(config_df.index.values)
+            config_df[c] = config_df.loc[shuffle_idx, c].reset_index(drop=True)
 
         # Reset BioPac
         if exp_info['BioPac'] == 'Yes':
@@ -344,42 +346,42 @@ the value that follows:
 
             if trial_type == 'math':
                 operator = [x for x in equation if not x.isdigit()][0]
-                lval, rval = equation.split(operator)
-                lval_image.setImage(op.join(
+                term1, term2 = equation.split(operator)
+                term1_image.setImage(op.join(
                     script_dir,
-                    'stimuli/numerals/{0:02d}_{1}.png'.format(int(lval), num_type_eq[0])))
-                rval_image.setImage(op.join(
+                    'stimuli/numerals/{0:02d}_{1}.png'.format(int(term1), num_type_eq[0])))
+                term2_image.setImage(op.join(
                     script_dir,
-                    'stimuli/numerals/{0:02d}_{1}.png'.format(int(rval), num_type_eq[0])))
+                    'stimuli/numerals/{0:02d}_{1}.png'.format(int(term2), num_type_eq[0])))
                 op_image.setImage(op.join(
                     script_dir,
                     'stimuli/numerals/{0}_{1}.png'.format(OPERATOR_DICT[operator], num_type_eq[0])))
                 op_image.setSize(set_word_size(op_image))
                 if num_type_eq == 'numeric':
-                    lval_image.setSize(set_word_size(lval_image))
-                    rval_image.setSize(set_word_size(rval_image))
-                    lval_pos = (lval_image.size[0] / 2.) + (op_image.size[0] / 2.)
-                    rval_pos = -1 * ((rval_image.size[0] / 2.) + (op_image.size[0] / 2.))
-                    lval_image.pos = (lval_pos, 0.0)
-                    rval_image.pos = (rval_pos, 0.0)
+                    term1_image.setSize(set_word_size(term1_image))
+                    term2_image.setSize(set_word_size(term2_image))
+                    term1_pos = (term1_image.size[0] / 2.) + (op_image.size[0] / 2.)
+                    term2_pos = -1 * ((term2_image.size[0] / 2.) + (op_image.size[0] / 2.))
+                    term1_image.pos = (term1_pos, 0.0)
+                    term2_image.pos = (term2_pos, 0.0)
                 elif num_type_eq == 'word':
-                    lval_image.setSize(set_word_size(lval_image))
-                    rval_image.setSize(set_word_size(rval_image))
-                    lval_pos = (lval_image.size[1] / 2.) + (op_image.size[1] / 2.)
-                    rval_pos = -1 * ((rval_image.size[1] / 2.) + (op_image.size[1] / 2.))
-                    lval_image.pos = (0.0, lval_pos)
-                    rval_image.pos = (0.0, rval_pos)
+                    term1_image.setSize(set_word_size(term1_image))
+                    term2_image.setSize(set_word_size(term2_image))
+                    term1_pos = (term1_image.size[1] / 2.) + (op_image.size[1] / 2.)
+                    term2_pos = -1 * ((term2_image.size[1] / 2.) + (op_image.size[1] / 2.))
+                    term1_image.pos = (0.0, term1_pos)
+                    term2_image.pos = (0.0, term2_pos)
                 elif num_type_eq == 'analog':  # unused
-                    lval_image.size = (0.45, 0.675)
-                    rval_image.size = (0.45, 0.675)
-                    lval_image.pos = (-0.45, 0.0)
-                    rval_image.pos = (0.45, 0.0)
+                    term1_image.size = (0.45, 0.675)
+                    term2_image.size = (0.45, 0.675)
+                    term1_image.pos = (-0.45, 0.0)
+                    term2_image.pos = (0.45, 0.0)
                 else:
                     raise Exception('num_type_eq must be "analog", "numeric", '
                                     'or "word", not {}'.format(num_type_eq))
 
-                run_data['stim_file_left'].append(lval_image.image.split('/stimuli/')[1])
-                run_data['stim_file_right'].append(rval_image.image.split('/stimuli/')[1])
+                run_data['stim_file_first_term'].append(term1_image.image.split('/stimuli/')[1])
+                run_data['stim_file_second_term'].append(term2_image.image.split('/stimuli/')[1])
                 run_data['stim_file_operator'].append(op_image.image.split('/stimuli/')[1])
             else:  # null trials- just memorize the number
                 solution = int(equation)
@@ -387,8 +389,8 @@ the value that follows:
                     script_dir,
                     'stimuli/numerals/{0:02d}_{1}.png'.format(solution, num_type_eq[0])))
                 eq_image.setSize(set_word_size(eq_image))
-                run_data['stim_file_left'].append(eq_image.image.split('/stimuli/')[1])
-                run_data['stim_file_right'].append('n/a')
+                run_data['stim_file_first_term'].append(eq_image.image.split('/stimuli/')[1])
+                run_data['stim_file_second_term'].append('n/a')
                 run_data['stim_file_operator'].append('n/a')
 
             comparison_image.setImage(op.join(
@@ -400,7 +402,7 @@ the value that follows:
             stage_clock.reset()
             equation_onset_time = run_clock.getTime()
             if trial_type == 'math':
-                draw(win=window, stim=[lval_image, op_image, rval_image],
+                draw(win=window, stim=[term1_image, op_image, term2_image],
                      duration=config_df.loc[trial_num, 'equation_duration'],
                      clock=stage_clock)
             else:
@@ -517,9 +519,9 @@ the value that follows:
                  clock=stage_clock)
 
             # Unset stim sizes so they don't pass on to the next trial
-            lval_image.size = None
+            term1_image.size = None
             op_image.size = None
-            rval_image.size = None
+            term2_image.size = None
             eq_image.size = None
             comparison_image.size = None
 
