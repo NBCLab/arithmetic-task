@@ -51,11 +51,6 @@ descriptions = {
             'multiply': ('The first term is multiplied by the second term'),
         }
     },
-    'equation': {
-        'LongName': 'equation',
-        'Description': ('The equation to be solved. For baseline trials this '
-                        'is just the value to be memorized.')
-    },
     'comparison': {
         'LongName': 'comparison value',
         'Description': 'Number against which to compare equation solution',

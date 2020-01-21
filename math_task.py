@@ -380,6 +380,9 @@ the value that follows:
                     raise Exception('num_type_eq must be "analog", "numeric", '
                                     'or "word", not {}'.format(num_type_eq))
 
+                run_data['first_term'].append(int(term1))
+                run_data['operation'].append(OPERATOR_DICT[operator])
+                run_data['second_term'].append(int(term2))
                 run_data['stim_file_first_term'].append(term1_image.image.split('/stimuli/')[1])
                 run_data['stim_file_second_term'].append(term2_image.image.split('/stimuli/')[1])
                 run_data['stim_file_operator'].append(op_image.image.split('/stimuli/')[1])
@@ -389,6 +392,9 @@ the value that follows:
                     script_dir,
                     'stimuli/numerals/{0:02d}_{1}.png'.format(solution, num_type_eq[0])))
                 eq_image.setSize(set_word_size(eq_image))
+                run_data['first_term'].append(solution)
+                run_data['operation'].append('n/a')
+                run_data['second_term'].append('n/a')
                 run_data['stim_file_first_term'].append(eq_image.image.split('/stimuli/')[1])
                 run_data['stim_file_second_term'].append('n/a')
                 run_data['stim_file_operator'].append('n/a')
@@ -494,10 +500,8 @@ the value that follows:
             run_data['feedback_duration'].append(feedback_duration)
             run_data['equation_representation'].append(num_type_eq)
             run_data['comparison_representation'].append(num_type_comp)
+            run_data['comparison'].append(comparison)
             run_data['accuracy'].append(trial_status)
-            run_data['first_term'].append(int(term1))
-            run_data['operation'].append(OPERATOR_DICT[operator])
-            run_data['second_term'].append(int(term2))
             run_data['solution'].append(solution)
             run_data['rounded_difference'].append(rounded_difference)
             run_data['feedback_type'].append(feedback_type)

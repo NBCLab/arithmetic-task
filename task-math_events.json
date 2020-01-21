@@ -2,8 +2,9 @@
     "accuracy": {
         "Description": "Accuracy of trial",
         "Levels": {
-            "0": "Incorrect response",
-            "1": "Correct response"
+            "correct": "Correct response",
+            "incorrect": "Incorrect response",
+            "no_response": "No response"
         },
         "LongName": "accuracy"
     },
@@ -34,10 +35,6 @@
         "LongName": "equation duration",
         "Units": "[s] second"
     },
-    "equation": {
-        "Description": "The equation to be solved. For baseline trials this is just the value to be memorized.",
-        "LongName": "equation"
-    },
     "equation_representation": {
         "Description": "Whether the equation is presented in \"word\" or \"numeric\" form.",
         "Levels": {
@@ -64,14 +61,32 @@
         },
         "LongName": "feedback type"
     },
+    "first_term": {
+        "Description": "The first term in the equation. For baseline trials, this is the only term.",
+        "LongName": "first term"
+    },
     "onset": {
         "Description": "Onset of the equation presentation",
         "LongName": "equation onset",
         "Units": "[s] second"
     },
+    "operation": {
+        "Description": "Equation operation. For baseline trials, this is empty.",
+        "Levels": {
+            "add": "The first term is added to the second term.",
+            "divide": "The first term is divided by the second term",
+            "multiply": "The first term is multiplied by the second term",
+            "subtract": "The second term is subtracted from the first term."
+        },
+        "LongName": "operation"
+    },
     "rounded_difference": {
         "Description": "Difference between the solution and the comparison value, rounded to the nearest integer.",
         "LongName": "rounded difference"
+    },
+    "second_term": {
+        "Description": "The second term in the equation. For baseline trials, this is empty.",
+        "LongName": "second term"
     },
     "solution": {
         "Description": "Solution to the equation. For baseline trials this is the same as \"equation\".",
