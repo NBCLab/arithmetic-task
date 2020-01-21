@@ -1,0 +1,100 @@
+{
+    "accuracy": {
+        "Description": "Accuracy of trial",
+        "Levels": {
+            "0": "Incorrect response",
+            "1": "Correct response"
+        },
+        "LongName": "accuracy"
+    },
+    "comparison": {
+        "Description": "Number against which to compare equation solution",
+        "LongName": "comparison value"
+    },
+    "comparison_duration": {
+        "Description": "Duration of the comparison value presentation",
+        "LongName": "comparison duration",
+        "Units": "[s] second"
+    },
+    "comparison_onset": {
+        "Description": "Onset of the comparison value presentation",
+        "LongName": "comparison onset",
+        "Units": "[s] second"
+    },
+    "comparison_representation": {
+        "Description": "Whether the comparison value is presented in \"word\" or \"numeric\" form.",
+        "Levels": {
+            "numeric": "Stimuli presented as numerals",
+            "word": "Stimuli presented in word form"
+        },
+        "LongName": "Comparison value representation"
+    },
+    "duration": {
+        "Description": "Duration of the equation presentation",
+        "LongName": "equation duration",
+        "Units": "[s] second"
+    },
+    "equation": {
+        "Description": "The equation to be solved. For baseline trials this is just the value to be memorized.",
+        "LongName": "equation"
+    },
+    "equation_representation": {
+        "Description": "Whether the equation is presented in \"word\" or \"numeric\" form.",
+        "Levels": {
+            "numeric": "Stimuli presented as numerals",
+            "word": "Stimuli presented in word form"
+        },
+        "LongName": "Equation representation"
+    },
+    "feedback_duration": {
+        "Description": "Duration of the feedback presentation",
+        "LongName": "feedback duration",
+        "Units": "[s] second"
+    },
+    "feedback_onset": {
+        "Description": "Onset of the feedback presentation",
+        "LongName": "feedback onset",
+        "Units": "[s] second"
+    },
+    "feedback_type": {
+        "Description": "Whether trial feedback will be informative or not.",
+        "Levels": {
+            "informative": "Feedback will indicate whether or not response was correct.",
+            "uninformative": "Feedback will not indicate whether or not response was correct."
+        },
+        "LongName": "feedback type"
+    },
+    "onset": {
+        "Description": "Onset of the equation presentation",
+        "LongName": "equation onset",
+        "Units": "[s] second"
+    },
+    "rounded_difference": {
+        "Description": "Difference between the solution and the comparison value, rounded to the nearest integer.",
+        "LongName": "rounded difference"
+    },
+    "solution": {
+        "Description": "Solution to the equation. For baseline trials this is the same as \"equation\".",
+        "LongName": "solution value"
+    },
+    "stim_file_comparison": {
+        "Description": "File for the comparison value.",
+        "LongName": "Comparison stimulus file"
+    },
+    "stim_file_feedback": {
+        "Description": "File for the trial feedback.",
+        "LongName": "Feedback stimulus file"
+    },
+    "stim_file_first_term": {
+        "Description": "File for the first term in the equation. For baseline trials, this is the only value.",
+        "LongName": "First-term stimulus file"
+    },
+    "stim_file_operator": {
+        "Description": "File for the operator in the equation. This value is empty for baseline trials.",
+        "LongName": "Operator stimulus file"
+    },
+    "stim_file_second_term": {
+        "Description": "File for the second term in the equation. This value is empty for baseline trials.",
+        "LongName": "Second-term stimulus file"
+    }
+}
