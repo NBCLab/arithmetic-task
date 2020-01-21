@@ -276,7 +276,8 @@ the value that follows:
             'onset', 'duration', 'trial_type',
             'comparison_onset', 'comparison_duration',
             'feedback_onset', 'feedback_duration',
-            'equation', 'comparison', 'solution', 'rounded_difference',
+            'first_term', 'operation', 'second_term',
+            'comparison', 'solution', 'rounded_difference',
             'feedback_type',
             'response', 'response_time', 'accuracy',
             'stim_file_first_term', 'stim_file_operator', 'stim_file_second_term',
@@ -494,8 +495,9 @@ the value that follows:
             run_data['equation_representation'].append(num_type_eq)
             run_data['comparison_representation'].append(num_type_comp)
             run_data['accuracy'].append(trial_status)
-            run_data['equation'].append(equation)
-            run_data['comparison'].append(comparison)
+            run_data['first_term'].append(int(term1))
+            run_data['operation'].append(OPERATOR_DICT[operator])
+            run_data['second_term'].append(int(term2))
             run_data['solution'].append(solution)
             run_data['rounded_difference'].append(rounded_difference)
             run_data['feedback_type'].append(feedback_type)

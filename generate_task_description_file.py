@@ -31,6 +31,26 @@ descriptions = {
         'Description': 'Duration of the feedback presentation',
         'Units': '[s] second'
     },
+    'first_term': {
+        'LongName': 'first term',
+        'Description': ('The first term in the equation. '
+                        'For baseline trials, this is the only term.'),
+    },
+    'second_term': {
+        'LongName': 'second term',
+        'Description': ('The second term in the equation. '
+                        'For baseline trials, this is empty.'),
+    },
+    'operation': {
+        'LongName': 'operation',
+        'Description': 'Equation operation. For baseline trials, this is empty.',
+        'Levels': {
+            'add': ('The first term is added to the second term.'),
+            'subtract': ('The second term is subtracted from the first term.'),
+            'divide': ('The first term is divided by the second term'),
+            'multiply': ('The first term is multiplied by the second term'),
+        }
+    },
     'equation': {
         'LongName': 'equation',
         'Description': ('The equation to be solved. For baseline trials this '
@@ -62,8 +82,9 @@ descriptions = {
         'LongName': 'accuracy',
         'Description': 'Accuracy of trial',
         'Levels': {
-            '0': 'Incorrect response',
-            '1': 'Correct response',
+            'incorrect': 'Incorrect response',
+            'correct': 'Correct response',
+            'no_response': 'No response'
         }
     },
     'stim_file_first_term': {
