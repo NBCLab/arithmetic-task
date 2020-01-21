@@ -291,8 +291,7 @@ the value that follows:
 
         # Shuffle configuration
         columns_to_shuffle = [
-            ['equation', 'solution', 'comparison', 'rounded_difference'],
-            'trial_type',
+            ['equation', 'solution', 'comparison', 'rounded_difference', 'trial_type'],
             'equation_representation', 'comparison_representation', 'feedback',
             'equation_duration', 'isi1', 'comparison_duration', 'isi2', 'feedback_duration', 'iti'
         ]
