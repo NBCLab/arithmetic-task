@@ -1,6 +1,6 @@
 import json
 
-descriptions = {
+events_description = {
     'onset': {
         'LongName': 'equation onset',
         'Description': 'Onset of the equation presentation',
@@ -34,12 +34,12 @@ descriptions = {
     'first_term': {
         'LongName': 'first term',
         'Description': ('The first term in the equation. '
-                        'For baseline trials, this is the only term.'),
+                        'For baseline trials, this is the only term.')
     },
     'second_term': {
         'LongName': 'second term',
         'Description': ('The second term in the equation. '
-                        'For baseline trials, this is empty.'),
+                        'For baseline trials, this is empty.')
     },
     'operation': {
         'LongName': 'operation',
@@ -48,29 +48,29 @@ descriptions = {
             'add': ('The first term is added to the second term.'),
             'subtract': ('The second term is subtracted from the first term.'),
             'divide': ('The first term is divided by the second term'),
-            'multiply': ('The first term is multiplied by the second term'),
+            'multiply': ('The first term is multiplied by the second term')
         }
     },
     'comparison': {
         'LongName': 'comparison value',
-        'Description': 'Number against which to compare equation solution',
+        'Description': 'Number against which to compare equation solution'
     },
     'solution': {
         'LongName': 'solution value',
-        'Description': 'Solution to the equation. For baseline trials this '
-                       'is the same as "equation".',
+        'Description': ('Solution to the equation. For baseline trials this '
+                        'is the same as "equation".')
     },
     'rounded_difference': {
         'LongName': 'rounded difference',
         'Description': ('Difference between the solution and the comparison '
-                        'value, rounded to the nearest integer.'),
+                        'value, rounded to the nearest integer.')
     },
     'feedback_type': {
         'LongName': 'feedback type',
         'Description': 'Whether trial feedback will be informative or not.',
         'Levels': {
             'informative': ('Feedback will indicate whether or not response was correct.'),
-            'uninformative': ('Feedback will not indicate whether or not response was correct.'),
+            'uninformative': ('Feedback will not indicate whether or not response was correct.')
         }
     },
     'accuracy': {
@@ -111,7 +111,7 @@ descriptions = {
                         '"numeric" form.'),
         'Levels': {
             'word': 'Stimuli presented in word form',
-            'numeric': 'Stimuli presented as numerals',
+            'numeric': 'Stimuli presented as numerals'
         }
     },
     'comparison_representation': {
@@ -120,10 +120,18 @@ descriptions = {
                         'or "numeric" form.'),
         'Levels': {
             'word': 'Stimuli presented in word form',
-            'numeric': 'Stimuli presented as numerals',
+            'numeric': 'Stimuli presented as numerals'
         }
     },
 }
 
+bold_description = {
+    'CogAtlasID': '',
+    'TaskName': 'math'
+}
+
 with open('task-math_events.json', 'w') as fo:
-    json.dump(descriptions, fo, sort_keys=True, indent=4)
+    json.dump(events_description, fo, sort_keys=True, indent=4)
+
+with open('task-mask_bold.json', 'w') as fo:
+    json.dump(bold_description, fo, sort_keys=True, indent=4)
