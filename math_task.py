@@ -129,7 +129,8 @@ if __name__ == '__main__':
         ser = serial.Serial('COM2', 115200)
 
     # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
-    base_name = 'sub-{0}_ses-{1}_task-math'.format(exp_info['Subject'], exp_info['Session'])
+    base_name = 'sub-{0}_ses-{1}_task-math'.format(
+        exp_info['Subject'].zfill(2), exp_info['Session'].zfill(2))
 
     # Check for existence of output files
     config_files = sorted(glob(op.join(script_dir, 'config/config_*.tsv')))
