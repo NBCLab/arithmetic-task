@@ -112,7 +112,7 @@ if __name__ == '__main__':
         title='Math task',
         order=['Subject', 'Session', 'BioPac'])
     window = visual.Window(
-        fullscr=False,
+        fullscr=True,
         size=(800, 600),
         monitor='testMonitor',
         units='norm',

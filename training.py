@@ -85,7 +85,7 @@ if __name__ == '__main__':
         exp_info,
         title='Math task training')
     window = visual.Window(
-        fullscr=False,
+        fullscr=True,
         size=(800, 600),
         monitor='testMonitor',
         units='norm',
@@ -192,14 +192,19 @@ the value that follows:
     window.flip()
     event.waitKeys(keyList=['space'])
 
-    instruction_text_box.setText('Your job is to solve the equation, and then compare the result to the comparison value.')
+    instruction_text_box.setText('Your job is to solve the equation, and then compare the result to the value in the next stage.')
     instruction_text_box.draw()
     window.flip()
     event.waitKeys(keyList=['space'])
 
     instruction_text_box.setText("""If the solution is less than the comparison value, press 1 (index).
 If it is equal to the comparison value, press 2 (middle).
-If it is greater than, press 3 (ring)""")
+If it is greater than the comparison value, press 3 (ring)""")
+    instruction_text_box.draw()
+    window.flip()
+    event.waitKeys(keyList=['space'])
+
+    instruction_text_box.setText("Try to answer as quickly as you can, even if the number has gone away.")
     instruction_text_box.draw()
     window.flip()
     event.waitKeys(keyList=['space'])
@@ -255,8 +260,7 @@ If it is greater than, press 3 (ring)""")
     instruction_text_box.setText("""\
             Great job!
 
-Now let's try an equation with
-              words.""")
+Now let's try an equation with words.""")
     draw(win=window, stim=instruction_text_box, keyList=['space'])
 
     # Next example- equation with words
@@ -304,8 +308,7 @@ Now let's try an equation with
     instruction_text_box.setText("""\
              Great job!
 
-Some trials have no equation.
-      Just memorize the number.""")
+Some trials have no equation. Just memorize the number.""")
     draw(win=window, stim=instruction_text_box, keyList=['space'])
 
     # Last example- a baseline trial
@@ -323,16 +326,16 @@ Some trials have no equation.
 
     # Instructions
     instruction_text_box.setText("""\
-          Great job!
+Great job!
 
-     I think you're ready.
-Just one last thing to remember.""")
+I think you're ready. Just one last thing to remember.""")
     draw(win=window, stim=instruction_text_box, keyList=['space'])
 
     # Let's talk about feedback
     instruction_text_box.setText("""\
-The feedback image may tell if you're
- correct or incorrect, or it may not.""")
+The feedback image indicates if you got the answer right or wrong.
+
+But sometimes the feedback will be "uninformative" (i.e., neutral).""")
     draw(win=window, stim=instruction_text_box, keyList=['space'])
 
     feedback_image.setImage(op.join(script_dir, 'stimuli/feedback/positive.png'))
