@@ -127,11 +127,11 @@ events_description = {
 
 bold_description = {
     'CogAtlasID': '',
-    'TaskName': 'math'
+    'TaskName': 'arithmetic'
 }
 
-with open('task-math_events.json', 'w') as fo:
+with open('task-arithmetic_events.json', 'w') as fo:
     json.dump(events_description, fo, sort_keys=True, indent=4)
 
-with open('task-mask_bold.json', 'w') as fo:
+with open('task-arithmetic_bold.json', 'w') as fo:
     json.dump(bold_description, fo, sort_keys=True, indent=4)
