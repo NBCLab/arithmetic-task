@@ -112,7 +112,7 @@ if __name__ == '__main__':
         title='Math task',
         order=['Subject', 'Session', 'BioPac'])
     window = visual.Window(
-        fullscr=False,
+        fullscr=True,
         size=(800, 600),
         monitor='testMonitor',
         units='norm',
@@ -129,10 +129,11 @@ if __name__ == '__main__':
         ser = serial.Serial('COM2', 115200)
 
     # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
-    base_name = 'sub-{0}_ses-{1}_task-math'.format(exp_info['Subject'], exp_info['Session'])
+    base_name = 'sub-{0}_ses-{1}_task-math'.format(
+        exp_info['Subject'].zfill(2), exp_info['Session'].zfill(2))
 
     # Check for existence of output files
-    config_files = sorted(glob(op.join(script_dir, 'config/config_*.tsv')))
+    config_files = sorted(glob(op.join(script_dir, 'config', 'config_*.tsv')))
     config_files = np.random.choice(config_files, size=N_RUNS, replace=False)
     for i_run in range(1, N_RUNS+1):
         outfile = op.join(script_dir, 'data',
@@ -141,7 +142,7 @@ if __name__ == '__main__':
             raise ValueError('Output file already exists.')
 
     # save a log file for detail verbose info
-    filename = op.join(script_dir, 'data/{0}_events'.format(base_name))
+    filename = op.join(script_dir, 'data', '{0}_events'.format(base_name))
     logfile = logging.LogFile(filename+'.log', level=logging.EXP)
     logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a file
 
@@ -276,7 +277,8 @@ the value that follows:
             'onset', 'duration', 'trial_type',
             'comparison_onset', 'comparison_duration',
             'feedback_onset', 'feedback_duration',
-            'equation', 'comparison', 'solution', 'rounded_difference',
+            'first_term', 'operation', 'second_term',
+            'comparison', 'solution', 'rounded_difference',
             'feedback_type',
             'response', 'response_time', 'accuracy',
             'stim_file_first_term', 'stim_file_operator', 'stim_file_second_term',
@@ -291,8 +293,7 @@ the value that follows:
 
         # Shuffle configuration
         columns_to_shuffle = [
-            ['equation', 'solution', 'comparison', 'rounded_difference'],
-            'trial_type',
+            ['equation', 'solution', 'comparison', 'rounded_difference', 'trial_type'],
             'equation_representation', 'comparison_representation', 'feedback',
             'equation_duration', 'isi1', 'comparison_duration', 'isi2', 'feedback_duration', 'iti'
         ]
@@ -349,13 +350,13 @@ the value that follows:
                 term1, term2 = equation.split(operator)
                 term1_image.setImage(op.join(
                     script_dir,
-                    'stimuli/numerals/{0:02d}_{1}.png'.format(int(term1), num_type_eq[0])))
+                    'stimuli', 'numerals', '{0:02d}_{1}.png'.format(int(term1), num_type_eq[0])))
                 term2_image.setImage(op.join(
                     script_dir,
-                    'stimuli/numerals/{0:02d}_{1}.png'.format(int(term2), num_type_eq[0])))
+                    'stimuli', 'numerals', '{0:02d}_{1}.png'.format(int(term2), num_type_eq[0])))
                 op_image.setImage(op.join(
                     script_dir,
-                    'stimuli/numerals/{0}_{1}.png'.format(OPERATOR_DICT[operator], num_type_eq[0])))
+                    'stimuli', 'numerals', '{0}_{1}.png'.format(OPERATOR_DICT[operator], num_type_eq[0])))
                 op_image.setSize(set_word_size(op_image))
                 if num_type_eq == 'numeric':
                     term1_image.setSize(set_word_size(term1_image))
@@ -380,22 +381,28 @@ the value that follows:
                     raise Exception('num_type_eq must be "analog", "numeric", '
                                     'or "word", not {}'.format(num_type_eq))
 
-                run_data['stim_file_first_term'].append(term1_image.image.split('/stimuli/')[1])
-                run_data['stim_file_second_term'].append(term2_image.image.split('/stimuli/')[1])
-                run_data['stim_file_operator'].append(op_image.image.split('/stimuli/')[1])
+                run_data['first_term'].append(int(term1))
+                run_data['operation'].append(OPERATOR_DICT[operator])
+                run_data['second_term'].append(int(term2))
+                run_data['stim_file_first_term'].append(term1_image.image.split(op.sep+'stimuli'+op.sep)[1])
+                run_data['stim_file_second_term'].append(term2_image.image.split(op.sep+'stimuli'+op.sep)[1])
+                run_data['stim_file_operator'].append(op_image.image.split(op.sep+'stimuli'+op.sep)[1])
             else:  # null trials- just memorize the number
                 solution = int(equation)
                 eq_image.setImage(op.join(
                     script_dir,
-                    'stimuli/numerals/{0:02d}_{1}.png'.format(solution, num_type_eq[0])))
+                    'stimuli', 'numerals', '{0:02d}_{1}.png'.format(solution, num_type_eq[0])))
                 eq_image.setSize(set_word_size(eq_image))
-                run_data['stim_file_first_term'].append(eq_image.image.split('/stimuli/')[1])
+                run_data['first_term'].append(solution)
+                run_data['operation'].append('n/a')
+                run_data['second_term'].append('n/a')
+                run_data['stim_file_first_term'].append(eq_image.image.split(op.sep+'stimuli'+op.sep)[1])
                 run_data['stim_file_second_term'].append('n/a')
                 run_data['stim_file_operator'].append('n/a')
 
             comparison_image.setImage(op.join(
                 script_dir,
-                'stimuli/numerals/{0:02d}_{1}.png'.format(comparison, num_type_comp[0])))
+                'stimuli', 'numerals', '{0:02d}_{1}.png'.format(comparison, num_type_comp[0])))
             comparison_image.setSize(set_word_size(comparison_image))
 
             # Equation
@@ -464,13 +471,13 @@ the value that follows:
 
             # determine feedback
             if feedback_type == 'noninformative':
-                feedback_image.image = op.join(script_dir, 'stimuli/feedback/noninformative.png')
+                feedback_image.image = op.join(script_dir, 'stimuli', 'feedback', 'noninformative.png')
             elif trial_status == 'correct':
-                feedback_image.image = op.join(script_dir, 'stimuli/feedback/positive.png')
+                feedback_image.image = op.join(script_dir, 'stimuli', 'feedback', 'positive.png')
             elif trial_status == 'incorrect':
-                feedback_image.image = op.join(script_dir, 'stimuli/feedback/negative.png')
+                feedback_image.image = op.join(script_dir, 'stimuli', 'feedback', 'negative.png')
             else:  # no response
-                feedback_image.image = op.join(script_dir, 'stimuli/feedback/negative.png')
+                feedback_image.image = op.join(script_dir, 'stimuli', 'feedback', 'negative.png')
 
             # feedback presentation
             stage_clock.reset()
@@ -494,14 +501,13 @@ the value that follows:
             run_data['feedback_duration'].append(feedback_duration)
             run_data['equation_representation'].append(num_type_eq)
             run_data['comparison_representation'].append(num_type_comp)
-            run_data['accuracy'].append(trial_status)
-            run_data['equation'].append(equation)
             run_data['comparison'].append(comparison)
+            run_data['accuracy'].append(trial_status)
             run_data['solution'].append(solution)
             run_data['rounded_difference'].append(rounded_difference)
             run_data['feedback_type'].append(feedback_type)
-            run_data['stim_file_comparison'].append(comparison_image.image.split('/stimuli/')[1])
-            run_data['stim_file_feedback'].append(feedback_image.image.split('/stimuli/')[1])
+            run_data['stim_file_comparison'].append(comparison_image.image.split(op.sep+'stimuli'+op.sep)[1])
+            run_data['stim_file_feedback'].append(feedback_image.image.split(op.sep+'stimuli'+op.sep)[1])
 
             # Save updated output file
             run_frame = pd.DataFrame(run_data)

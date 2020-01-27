@@ -122,8 +122,10 @@ def determine_timing(n_trials=24, null_rate=0.33,
             second_val = str(np.random.randint(1, 31))
             operator = chosen_operators[math_counter]
             # If the result of division would be less than 1, flip the values
-            if operator == '/' and int(first_val) < int(second_val):
+            if (operator == '/') and (int(first_val) < int(second_val)):
                 first_val, second_val = second_val, first_val
+            elif operator == '*':
+                second_val = str(np.random.randint(1, 10))
             equation = first_val + operator + second_val
             solution = eval(equation)
             math_counter += 1
