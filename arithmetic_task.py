@@ -13,6 +13,7 @@ from __future__ import absolute_import, division, print_function
 import sys
 import time
 import serial
+import os
 import os.path as op
 from glob import glob
 
@@ -146,6 +147,10 @@ if __name__ == '__main__':
 
     if exp_info['BioPac'] == 'Yes':
         ser = serial.Serial('COM2', 115200)
+
+    # Make output dir
+    if not op.exists(op.join(script_dir, 'data')):
+        os.makedirs(op.join(script_dir, 'data'))
 
     # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
     base_name = 'sub-{0}_ses-{1}_task-math'.format(
