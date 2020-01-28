@@ -13,6 +13,7 @@ from __future__ import absolute_import, division, print_function
 import sys
 import time
 import serial
+import os
 import os.path as op
 from glob import glob
 
@@ -94,7 +95,7 @@ def draw(win, stim, duration, clock):
     response.tStart = start_time
     response.frameNStart = 0
     response.status = STARTED
-    window.callOnFlip(response.clock.reset)
+    win.callOnFlip(response.clock.reset)
     event.clearEvents(eventType='keyboard')
     while time.time() - start_time < duration:
         if isinstance(stim, list):
@@ -124,7 +125,7 @@ if __name__ == '__main__':
     # Remember to turn fullscr to True for the real deal.
     exp_info = {'Subject': '',
                 'Session': '',
-                'BioPac': ['No', 'Yes']}
+                'BioPac': ['Yes', 'No']}
 
     dlg = gui.DlgFromDict(
         exp_info,
@@ -146,6 +147,10 @@ if __name__ == '__main__':
 
     if exp_info['BioPac'] == 'Yes':
         ser = serial.Serial('COM2', 115200)
+
+    # Make output dir
+    if not op.exists(op.join(script_dir, 'data')):
+        os.makedirs(op.join(script_dir, 'data'))
 
     # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
     base_name = 'sub-{0}_ses-{1}_task-math'.format(
@@ -378,8 +383,8 @@ the value that follows:
                 if num_type_eq == 'numeric':
                     term1_image.setSize(set_word_size(term1_image))
                     term2_image.setSize(set_word_size(term2_image))
-                    term1_pos = (term1_image.size[0] / 2.) + (op_image.size[0] / 2.)
-                    term2_pos = -1 * ((term2_image.size[0] / 2.) + (op_image.size[0] / 2.))
+                    term1_pos = -1 * (term1_image.size[0] / 2.) + (op_image.size[0] / 2.)
+                    term2_pos = ((term2_image.size[0] / 2.) + (op_image.size[0] / 2.))
                     term1_image.pos = (term1_pos, 0.0)
                     term2_image.pos = (term2_pos, 0.0)
                 elif num_type_eq == 'word':
