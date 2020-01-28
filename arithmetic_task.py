@@ -94,7 +94,7 @@ def draw(win, stim, duration, clock):
     response.tStart = start_time
     response.frameNStart = 0
     response.status = STARTED
-    window.callOnFlip(response.clock.reset)
+    win.callOnFlip(response.clock.reset)
     event.clearEvents(eventType='keyboard')
     while time.time() - start_time < duration:
         if isinstance(stim, list):
