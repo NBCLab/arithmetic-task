@@ -58,6 +58,25 @@ def close_on_esc(win):
         core.quit()
 
 
+def draw_until_keypress(win, stim, continueKeys=['5']):
+    """
+    """
+    response = event.BuilderKeyResponse()
+    win.callOnFlip(response.clock.reset)
+    event.clearEvents(eventType='keyboard')
+    while True:
+        if isinstance(stim, list):
+            for s in stim:
+                s.draw()
+        else:
+            stim.draw()
+        keys = event.getKeys(keyList=continueKeys)
+        if any([ck in keys for ck in continueKeys]):
+            return
+        close_on_esc(win)
+        win.flip()
+
+
 def draw(win, stim, duration, clock):
     """
     Draw stimulus for a given duration.
@@ -308,9 +327,7 @@ the value that follows:
         # Scanner runtime
         # ---------------
         # Wait for trigger from scanner.
-        instruction_text_box.draw()
-        window.flip()
-        event.waitKeys(keyList=['5'])
+        draw_until_keypress(win=window, stim=instruction_text_box)
 
         # Start recording
         if exp_info['BioPac'] == 'Yes':
