@@ -129,7 +129,7 @@ if __name__ == '__main__':
 
     dlg = gui.DlgFromDict(
         exp_info,
-        title='Math task',
+        title='Arithmetic task',
         order=['Subject', 'Session', 'BioPac'])
     window = visual.Window(
         fullscr=True,
@@ -153,7 +153,7 @@ if __name__ == '__main__':
         os.makedirs(op.join(script_dir, 'data'))
 
     # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
-    base_name = 'sub-{0}_ses-{1}_task-math'.format(
+    base_name = 'sub-{0}_ses-{1}_task-arithmetic'.format(
         exp_info['Subject'].zfill(2), exp_info['Session'].zfill(2))
 
     # Check for existence of output files
@@ -256,7 +256,7 @@ the value that follows:
         opacity=1,
         depth=-1.0,
         interpolate=True)
-    fixation_text = visual.TextStim(
+    iti_stim = visual.TextStim(
         win=window,
         name='fixation',
         text=u'\u2022',
@@ -266,6 +266,19 @@ the value that follows:
         wrapWidth=None,
         ori=0,
         color='white',
+        colorSpace='rgb',
+        opacity=1,
+        depth=0.0)
+    isi_stim = visual.TextStim(
+        win=window,
+        name='fixation',
+        text=u'\u2022',
+        font=u'Arial',
+        pos=(0, 0),
+        height=0.14,
+        wrapWidth=None,
+        ori=0,
+        color='red',
         colorSpace='rgb',
         opacity=1,
         depth=0.0)
@@ -342,7 +355,7 @@ the value that follows:
 
         # Beginning fixation
         stage_clock.reset()
-        draw(win=window, stim=fixation_text, duration=LEAD_IN_DURATION,
+        draw(win=window, stim=iti_stim, duration=LEAD_IN_DURATION,
              clock=stage_clock)
 
         # set up handler to look after randomisation of conditions etc
@@ -442,7 +455,7 @@ the value that follows:
 
             # ISI1
             stage_clock.reset()
-            isi1_keys, _ = draw(win=window, stim=fixation_text,
+            isi1_keys, _ = draw(win=window, stim=isi_stim,
                                 duration=config_df.loc[trial_num, 'isi1'],
                                 clock=stage_clock)
 
@@ -456,7 +469,7 @@ the value that follows:
 
             # ISI2
             stage_clock.reset()
-            isi2_keys, _ = draw(win=window, stim=fixation_text,
+            isi2_keys, _ = draw(win=window, stim=iti_stim,
                                 duration=config_df.loc[trial_num, 'isi2'],
                                 clock=stage_clock)
 
@@ -544,7 +557,7 @@ the value that follows:
             else:
                 iti_duration = config_df.loc[trial_num, 'iti']
 
-            draw(win=window, stim=fixation_text, duration=iti_duration,
+            draw(win=window, stim=iti_stim, duration=iti_duration,
                  clock=stage_clock)
 
             # Unset stim sizes so they don't pass on to the next trial
