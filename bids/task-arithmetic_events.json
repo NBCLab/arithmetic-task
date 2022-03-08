@@ -62,7 +62,7 @@
         "LongName": "feedback type"
     },
     "first_term": {
-        "Description": "The first term in the equation. For baseline trials, this is the only term.",
+        "Description": "The first term in the equation.",
         "LongName": "first term"
     },
     "onset": {
@@ -71,7 +71,7 @@
         "Units": "[s] second"
     },
     "operation": {
-        "Description": "Equation operation. For baseline trials, this is empty.",
+        "Description": "Equation operation.",
         "Levels": {
             "add": "The first term is added to the second term.",
             "divide": "The first term is divided by the second term",
@@ -85,11 +85,11 @@
         "LongName": "rounded difference"
     },
     "second_term": {
-        "Description": "The second term in the equation. For baseline trials, this is empty.",
+        "Description": "The second term in the equation.",
         "LongName": "second term"
     },
     "solution": {
-        "Description": "Solution to the equation. For baseline trials this is the same as \"equation\".",
+        "Description": "Solution to the equation.",
         "LongName": "solution value"
     },
     "stim_file_comparison": {
@@ -101,15 +101,15 @@
         "LongName": "Feedback stimulus file"
     },
     "stim_file_first_term": {
-        "Description": "File for the first term in the equation. For baseline trials, this is the only value.",
+        "Description": "File for the first term in the equation.",
         "LongName": "First-term stimulus file"
     },
     "stim_file_operator": {
-        "Description": "File for the operator in the equation. This value is empty for baseline trials.",
+        "Description": "File for the operator in the equation.",
         "LongName": "Operator stimulus file"
     },
     "stim_file_second_term": {
-        "Description": "File for the second term in the equation. This value is empty for baseline trials.",
+        "Description": "File for the second term in the equation.",
         "LongName": "Second-term stimulus file"
     }
 }
