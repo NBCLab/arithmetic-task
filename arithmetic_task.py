@@ -11,11 +11,11 @@ If you publish work using this script please cite the PsychoPy publications:
 """
 from __future__ import absolute_import, division, print_function
 
-import os
 import os.path as op
 import sys
 import time
 from glob import glob
+from os import makedirs
 
 import numpy as np
 import pandas as pd
@@ -141,8 +141,7 @@ if __name__ == "__main__":
         core.quit()  # user pressed cancel
 
     # Make output dir
-    if not op.exists(op.join(script_dir, "data")):
-        os.makedirs(op.join(script_dir, "data"))
+    makedirs(op.join(script_dir, "data"), exist_ok=True)
 
     # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
     base_name = "sub-{0}_ses-{1}_task-arithmetic".format(
@@ -154,7 +153,7 @@ if __name__ == "__main__":
     config_files = np.random.choice(config_files, size=N_RUNS, replace=False)
     for i_run in range(1, N_RUNS + 1):
         outfile = op.join(
-            script_dir, "data", "{0}_run-{1:02d}_events.tsv".format(base_name, i_run)
+            script_dir, "data", "{0}_run-{1}_events.tsv".format(base_name, i_run)
         )
         if op.exists(outfile) and "Pilot" not in outfile:
             raise ValueError("Output file already exists.")
@@ -352,7 +351,7 @@ the value that follows:
         outfile = op.join(
             script_dir,
             "data",
-            "{0}_run-{1:02d}_events.tsv".format(base_name, run_label),
+            "{0}_run-{1}_events.tsv".format(base_name, run_label),
         )
 
         # Shuffle configuration
