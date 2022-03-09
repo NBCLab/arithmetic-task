@@ -412,94 +412,74 @@ the value that follows:
             rounded_difference = int(config_df.loc[trial_num, "rounded_difference"])
             solution = config_df.loc[trial_num, "solution"]
 
-            if trial_type == "math":
-                operator = [x for x in equation if not x.isdigit()][0]
-                term1, term2 = equation.split(operator)
-                term1_image.setImage(
-                    op.join(
-                        script_dir,
-                        "stimuli",
-                        "numerals",
-                        "{0:02d}_{1}.png".format(int(term1), num_type_eq[0]),
-                    )
+            operator = [x for x in equation if not x.isdigit()][0]
+            term1, term2 = equation.split(operator)
+            term1_image.setImage(
+                op.join(
+                    script_dir,
+                    "stimuli",
+                    "numerals",
+                    "{0:02d}_{1}.png".format(int(term1), num_type_eq[0]),
                 )
-                term2_image.setImage(
-                    op.join(
-                        script_dir,
-                        "stimuli",
-                        "numerals",
-                        "{0:02d}_{1}.png".format(int(term2), num_type_eq[0]),
-                    )
+            )
+            term2_image.setImage(
+                op.join(
+                    script_dir,
+                    "stimuli",
+                    "numerals",
+                    "{0:02d}_{1}.png".format(int(term2), num_type_eq[0]),
                 )
-                op_image.setImage(
-                    op.join(
-                        script_dir,
-                        "stimuli",
-                        "numerals",
-                        "{0}_{1}.png".format(OPERATOR_DICT[operator], num_type_eq[0]),
-                    )
+            )
+            op_image.setImage(
+                op.join(
+                    script_dir,
+                    "stimuli",
+                    "numerals",
+                    "{0}_{1}.png".format(OPERATOR_DICT[operator], num_type_eq[0]),
                 )
-                op_image.setSize(set_word_size(op_image))
-                if num_type_eq == "numeric":
-                    term1_image.setSize(set_word_size(term1_image))
-                    term2_image.setSize(set_word_size(term2_image))
-                    term1_pos = -1 * (
-                        (term1_image.size[0] / 2.0) + (op_image.size[0] / 2.0)
-                    )
-                    term2_pos = (term2_image.size[0] / 2.0) + (op_image.size[0] / 2.0)
-                    term1_image.pos = (term1_pos, 0.0)
-                    term2_image.pos = (term2_pos, 0.0)
-                elif num_type_eq == "word":
-                    term1_image.setSize(set_word_size(term1_image))
-                    term2_image.setSize(set_word_size(term2_image))
-                    term1_pos = (term1_image.size[1] / 2.0) + (op_image.size[1] / 2.0)
-                    term2_pos = -1 * (
-                        (term2_image.size[1] / 2.0) + (op_image.size[1] / 2.0)
-                    )
-                    term1_image.pos = (0.0, term1_pos)
-                    term2_image.pos = (0.0, term2_pos)
-                elif num_type_eq == "analog":  # unused
-                    term1_image.size = (0.45, 0.675)
-                    term2_image.size = (0.45, 0.675)
-                    term1_image.pos = (-0.45, 0.0)
-                    term2_image.pos = (0.45, 0.0)
-                else:
-                    raise Exception(
-                        'num_type_eq must be "analog", "numeric", '
-                        'or "word", not {}'.format(num_type_eq)
-                    )
+            )
+            op_image.setSize(set_word_size(op_image))
+            if num_type_eq == "numeric":
+                term1_image.setSize(set_word_size(term1_image))
+                term2_image.setSize(set_word_size(term2_image))
+                term1_pos = -1 * (
+                    (term1_image.size[0] / 2.0) + (op_image.size[0] / 2.0)
+                )
+                term2_pos = (term2_image.size[0] / 2.0) + (op_image.size[0] / 2.0)
+                term1_image.pos = (term1_pos, 0.0)
+                term2_image.pos = (term2_pos, 0.0)
+            elif num_type_eq == "word":
+                term1_image.setSize(set_word_size(term1_image))
+                term2_image.setSize(set_word_size(term2_image))
+                term1_pos = (term1_image.size[1] / 2.0) + (op_image.size[1] / 2.0)
+                term2_pos = -1 * (
+                    (term2_image.size[1] / 2.0) + (op_image.size[1] / 2.0)
+                )
+                term1_image.pos = (0.0, term1_pos)
+                term2_image.pos = (0.0, term2_pos)
+            elif num_type_eq == "analog":  # unused
+                term1_image.size = (0.45, 0.675)
+                term2_image.size = (0.45, 0.675)
+                term1_image.pos = (-0.45, 0.0)
+                term2_image.pos = (0.45, 0.0)
+            else:
+                raise Exception(
+                    'num_type_eq must be "analog", "numeric", '
+                    'or "word", not {}'.format(num_type_eq)
+                )
 
-                run_data["first_term"].append(int(term1))
-                run_data["operation"].append(OPERATOR_DICT[operator])
-                run_data["second_term"].append(int(term2))
-                run_data["stim_file_first_term"].append(
-                    term1_image.image.split(op.sep + "stimuli" + op.sep)[1]
-                )
-                run_data["stim_file_second_term"].append(
-                    term2_image.image.split(op.sep + "stimuli" + op.sep)[1]
-                )
-                run_data["stim_file_operator"].append(
-                    op_image.image.split(op.sep + "stimuli" + op.sep)[1]
-                )
-            else:  # null trials- just memorize the number
-                solution = int(equation)
-                eq_image.setImage(
-                    op.join(
-                        script_dir,
-                        "stimuli",
-                        "numerals",
-                        "{0:02d}_{1}.png".format(solution, num_type_eq[0]),
-                    )
-                )
-                eq_image.setSize(set_word_size(eq_image))
-                run_data["first_term"].append(solution)
-                run_data["operation"].append("n/a")
-                run_data["second_term"].append("n/a")
-                run_data["stim_file_first_term"].append(
-                    eq_image.image.split(op.sep + "stimuli" + op.sep)[1]
-                )
-                run_data["stim_file_second_term"].append("n/a")
-                run_data["stim_file_operator"].append("n/a")
+            run_data["first_term"].append(int(term1))
+            run_data["operation"].append(OPERATOR_DICT[operator])
+            run_data["second_term"].append(int(term2))
+            run_data["stim_file_first_term"].append(
+                term1_image.image.split(op.sep + "stimuli" + op.sep)[1]
+            )
+            run_data["stim_file_second_term"].append(
+                term2_image.image.split(op.sep + "stimuli" + op.sep)[1]
+            )
+            run_data["stim_file_operator"].append(
+                op_image.image.split(op.sep + "stimuli" + op.sep)[1]
+            )
 
             comparison_image.setImage(
                 op.join(
@@ -514,20 +494,12 @@ the value that follows:
             # Equation
             stage_clock.reset()
             equation_onset_time = run_clock.getTime()
-            if trial_type == "math":
-                draw(
-                    win=window,
-                    stim=[term1_image, op_image, term2_image],
-                    duration=config_df.loc[trial_num, "equation_duration"],
-                    clock=stage_clock,
-                )
-            else:
-                draw(
-                    win=window,
-                    stim=eq_image,
-                    duration=config_df.loc[trial_num, "equation_duration"],
-                    clock=stage_clock,
-                )
+            draw(
+                win=window,
+                stim=[term1_image, op_image, term2_image],
+                duration=config_df.loc[trial_num, "equation_duration"],
+                clock=stage_clock,
+            )
             equation_duration = stage_clock.getTime()
 
             # ISI1
