@@ -19,7 +19,6 @@ from glob import glob
 
 import numpy as np
 import pandas as pd
-import serial
 from psychopy import core, data, event, gui, logging, visual
 from psychopy.constants import STARTED, STOPPED
 
@@ -121,10 +120,10 @@ if __name__ == "__main__":
     # Collect user input
     # ------------------
     # Remember to turn fullscr to True for the real deal.
-    exp_info = {"Subject": "", "Session": "", "BioPac": ["Yes", "No"]}
+    exp_info = {"Subject": "", "Session": ""}
 
     dlg = gui.DlgFromDict(
-        exp_info, title="Arithmetic task", order=["Subject", "Session", "BioPac"]
+        exp_info, title="Arithmetic task", order=["Subject", "Session"]
     )
     window = visual.Window(
         fullscr=True,
@@ -140,9 +139,6 @@ if __name__ == "__main__":
     )
     if not dlg.OK:
         core.quit()  # user pressed cancel
-
-    if exp_info["BioPac"] == "Yes":
-        ser = serial.Serial("COM2", 115200)
 
     # Make output dir
     if not op.exists(op.join(script_dir, "data")):
@@ -376,18 +372,10 @@ the value that follows:
             shuffle_idx = np.random.permutation(config_df.index.values)
             config_df[c] = config_df.loc[shuffle_idx, c].reset_index(drop=True)
 
-        # Reset BioPac
-        if exp_info["BioPac"] == "Yes":
-            ser.write("RR")
-
         # Scanner runtime
         # ---------------
         # Wait for trigger from scanner.
         draw_until_keypress(win=window, stim=instruction_text_box)
-
-        # Start recording
-        if exp_info["BioPac"] == "Yes":
-            ser.write("FF")
 
         run_clock.reset()
 
@@ -668,15 +656,8 @@ the value that follows:
             float_format="%.2f",
         )
 
-        if exp_info["BioPac"] == "Yes":
-            ser.write("00")
-
         print("Total duration of run: {}".format(run_clock.getTime()))
     # end run_loop
-
-    # Shut down serial port connection
-    if exp_info["BioPac"] == "Yes":
-        ser.close()
 
     # Scanner is off for this
     stage_clock.reset()
