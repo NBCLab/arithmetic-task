@@ -27,10 +27,10 @@ OPERATOR_DICT = {"+": "add", "-": "subtract", "/": "divide", "*": "multiply"}
 RUN_DURATION = 450
 LEAD_IN_DURATION = 6
 END_SCREEN_DURATION = 2
-N_RUNS = 2
 
 
 def set_word_size(img):
+    """Set size of word image."""
     # det from orig height 2row / orig height 1row
     const = 1.764505119453925
 
@@ -47,16 +47,14 @@ def set_word_size(img):
 
 
 def close_on_esc(win):
-    """
-    Closes window if escape is pressed
-    """
+    """Close window if escape is pressed."""
     if "escape" in event.getKeys():
         win.close()
         core.quit()
 
 
 def draw_until_keypress(win, stim, continueKeys=["5"]):
-    """ """
+    """Draw stimulus until a continueKey is pressed."""
     response = event.BuilderKeyResponse()
     win.callOnFlip(response.clock.reset)
     event.clearEvents(eventType="keyboard")
@@ -119,14 +117,24 @@ if __name__ == "__main__":
 
     # Collect user input
     # ------------------
-    # Remember to turn fullscr to True for the real deal.
-    exp_info = {"Subject": "", "Session": ""}
-
+    exp_info = {
+        "Subject": "",
+        "Session": "",
+        "Number of Training Runs": 2,
+        "Number of Evaluation Runs": 2,
+    }
     dlg = gui.DlgFromDict(
-        exp_info, title="Arithmetic task", order=["Subject", "Session"]
+        exp_info,
+        title="Arithmetic task",
+        order=[
+            "Subject",
+            "Session",
+            "Number of Training Runs",
+            "Number of Evaluation Runs",
+        ],
     )
     window = visual.Window(
-        fullscr=True,
+        fullscr=False,  # Remember to turn fullscr to True for the real deal.
         size=(800, 600),
         monitor="testMonitor",
         units="norm",
@@ -145,13 +153,16 @@ if __name__ == "__main__":
 
     # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
     base_name = "sub-{0}_ses-{1}_task-arithmetic".format(
-        exp_info["Subject"].zfill(2), exp_info["Session"].zfill(2)
+        exp_info["Subject"],
+        exp_info["Session"],
     )
+
+    n_runs = exp_info["Number of Training Runs"] + exp_info["Number of Evaluation Runs"]
 
     # Check for existence of output files
     config_files = sorted(glob(op.join(script_dir, "config", "config_*.tsv")))
-    config_files = np.random.choice(config_files, size=N_RUNS, replace=False)
-    for i_run in range(1, N_RUNS + 1):
+    config_files = np.random.choice(config_files, size=n_runs, replace=False)
+    for i_run in range(1, n_runs + 1):
         outfile = op.join(
             script_dir, "data", "{0}_run-{1}_events.tsv".format(base_name, i_run)
         )
@@ -168,8 +179,7 @@ if __name__ == "__main__":
     instruction_text_box = visual.TextStim(
         win=window,
         name="instruction_text_box",
-        text="""\
-You will be shown a series of formulae and individual numbers,
+        text="""You will be shown a series of formulae and individual numbers,
 you must determine if the result is less than, equal to, or greater than
 the value that follows:
       1 - Less Than
@@ -301,13 +311,14 @@ the value that follows:
 
     # Scanner runtime
     # ---------------
-    global_clock = core.Clock()  # to track the time since experiment started
+    # NOTE: unused
+    # global_clock = core.Clock()  # to track the time since experiment started
     run_clock = core.Clock()  # to track time since each run starts (post scanner pulse)
     stage_clock = core.Clock()  # to track duration of each stage in each trial
 
     # set up handler to look after randomisation of conditions etc
     run_loop = data.TrialHandler(
-        nReps=N_RUNS,
+        nReps=n_runs,
         method="random",
         extraInfo=exp_info,
         originPath=-1,
@@ -315,13 +326,15 @@ the value that follows:
         seed=None,
         name="run_loop",
     )
-    curr_run = run_loop.trialList[0]  # so we can initialise stimuli with some values
+    # NOTE: appears unused
+    # curr_run = run_loop.trialList[0]  # so we can initialise stimuli with some values
 
     for curr_run in run_loop:
         COLUMNS = [
             "onset",
             "duration",
             "trial_type",
+            "run_type",
             "comparison_onset",
             "comparison_duration",
             "feedback_onset",
@@ -332,7 +345,6 @@ the value that follows:
             "comparison",
             "solution",
             "rounded_difference",
-            "feedback_type",
             "response",
             "response_time",
             "accuracy",
@@ -345,8 +357,15 @@ the value that follows:
             "comparison_representation",
         ]
         run_data = {c: [] for c in COLUMNS}
-        currentLoop = run_loop
+        # NOTE: appears unused
+        # currentLoop = run_loop
         run_label = run_loop.thisN + 1
+
+        if run_loop.thisN < exp_info["Number of Training Runs"]:
+            run_type = "Training"
+        else:
+            run_type = "Evaluation"
+
         config_df = pd.read_table(config_files[run_label - 1])
         outfile = op.join(
             script_dir,
@@ -371,6 +390,17 @@ the value that follows:
             shuffle_idx = np.random.permutation(config_df.index.values)
             config_df[c] = config_df.loc[shuffle_idx, c].reset_index(drop=True)
 
+        # set up handler to look after randomisation of conditions etc
+        trial_loop = data.TrialHandler(
+            nReps=config_df.shape[0],
+            method="random",
+            extraInfo=exp_info,
+            originPath=-1,
+            trialList=[None],
+            seed=None,
+            name="trial_loop",
+        )
+
         # Scanner runtime
         # ---------------
         # Wait for trigger from scanner.
@@ -382,29 +412,19 @@ the value that follows:
         stage_clock.reset()
         draw(win=window, stim=iti_stim, duration=LEAD_IN_DURATION, clock=stage_clock)
 
-        # set up handler to look after randomisation of conditions etc
-        trial_loop = data.TrialHandler(
-            nReps=config_df.shape[0],
-            method="random",
-            extraInfo=exp_info,
-            originPath=-1,
-            trialList=[None],
-            seed=None,
-            name="trial_loop",
-        )
-        curr_trial = trial_loop.trialList[
-            0
-        ]  # so we can initialise stimuli with some values
+        # NOTE: appears unused
+        # curr_trial = trial_loop.trialList[0]  # so we can initialise stimuli with some values
 
         for curr_trial in trial_loop:
             # This section (before the "prepare" portion) takes ~0.4s with 300dpi images
             # Within reasonable range for 72dpi images
-            currentLoop = trial_loop
             trial_num = trial_loop.thisN
+
+            # NOTE: appears unused
+            # currentLoop = trial_loop
 
             trial_type = config_df.loc[trial_num, "trial_type"]
             equation = config_df.loc[trial_num, "equation"]
-            feedback_type = config_df.loc[trial_num, "feedback"]
             num_type_eq = config_df.loc[trial_num, "equation_representation"]
             num_type_comp = config_df.loc[trial_num, "comparison_representation"]
             comparison = int(config_df.loc[trial_num, "comparison"])
@@ -530,7 +550,8 @@ the value that follows:
                 clock=stage_clock,
             )
 
-            # determine response
+            # determine response, using the *last* key pressed within the response window
+            # (comparison window + ISI2)
             if task_keys and isi2_keys:
                 response_value = int(isi2_keys[-1][0])
                 run_data["response_time"].append(task_keys[0][1])
@@ -543,6 +564,7 @@ the value that follows:
             else:
                 response_value = "n/a"
                 run_data["response_time"].append(np.nan)
+
             run_data["response"].append(response_value)
 
             # determine correct response
@@ -562,9 +584,13 @@ the value that follows:
                 trial_status = "incorrect"
 
             # determine feedback
-            if feedback_type == "noninformative":
+            if (run_type == "Training") and (trial_num == config_df.index.values[-1]):
                 feedback_image.image = op.join(
-                    script_dir, "stimuli", "feedback", "noninformative.png"
+                    script_dir, "stimuli", "feedback", "done.png"
+                )
+            elif run_type == "Training":
+                feedback_image.image = op.join(
+                    script_dir, "stimuli", "feedback", "next.png"
                 )
             elif trial_status == "correct":
                 feedback_image.image = op.join(
@@ -608,7 +634,7 @@ the value that follows:
             run_data["accuracy"].append(trial_status)
             run_data["solution"].append(solution)
             run_data["rounded_difference"].append(rounded_difference)
-            run_data["feedback_type"].append(feedback_type)
+            run_data["run_type"].append(run_type)
             run_data["stim_file_comparison"].append(
                 comparison_image.image.split(op.sep + "stimuli" + op.sep)[1]
             )
@@ -616,21 +642,10 @@ the value that follows:
                 feedback_image.image.split(op.sep + "stimuli" + op.sep)[1]
             )
 
-            # Save updated output file
-            run_frame = pd.DataFrame(run_data)
-            run_frame.to_csv(
-                outfile,
-                sep="\t",
-                line_terminator="\n",
-                na_rep="n/a",
-                index=False,
-                float_format="%.2f",
-            )
-
             # ITI
             stage_clock.reset()
-            # For last trial, update fixation
             if trial_num == config_df.index.values[-1]:
+                # For last trial, update fixation duration
                 iti_duration = RUN_DURATION - run_clock.getTime()
             else:
                 iti_duration = config_df.loc[trial_num, "iti"]
@@ -643,8 +658,8 @@ the value that follows:
             term2_image.size = None
             eq_image.size = None
             comparison_image.size = None
+            # end trial_loop
 
-        # end trial_loop
         run_frame = pd.DataFrame(run_data)
         run_frame.to_csv(
             outfile,
@@ -656,7 +671,7 @@ the value that follows:
         )
 
         print("Total duration of run: {}".format(run_clock.getTime()))
-    # end run_loop
+        # end run_loop
 
     # Scanner is off for this
     stage_clock.reset()
