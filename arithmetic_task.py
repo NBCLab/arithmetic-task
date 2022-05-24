@@ -182,9 +182,10 @@ if __name__ == "__main__":
         text="""You will be shown a series of formulae and individual numbers,
 you must determine if the result is less than, equal to, or greater than
 the value that follows:
-      1 - Less Than
-      2 - Equal to
-      3 - Greater Than""",
+
+1 - Less Than
+2 - Equal to
+3 - Greater Than""",
         font="Arial",
         height=0.1,
         pos=(0, 0),
@@ -194,6 +195,7 @@ the value that follows:
         colorSpace="rgb",
         opacity=1,
         depth=-1.0,
+        alignHoriz="center",
     )
     term1_image = visual.ImageStim(
         win=window,
