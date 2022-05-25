@@ -10,6 +10,11 @@ This task has two runs of 7.5 minutes.
 
 ## Configuration files
 
+Rather than attempt to construct timing and trial contents during run-time,
+we chose to generate a large number of configuration files ahead of time.
+These files determine exact task timing (e.g., each trial's ISIs) and contents (e.g., each trial's formula and comparison value).
+The file used for a given run is randomly selected at the beginning of the task.
+
 ## Implementation details
 
 Each run of the task lasts 450 seconds.
